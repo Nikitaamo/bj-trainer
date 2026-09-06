@@ -1,0 +1,716 @@
+<title>European Black Jack strategija</title>
+<!--PWA-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600;6..96,700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --felt: #E3E9E2;
+    --felt-deep: #D3DDD4;
+    --card: #FBFAF6;
+    --ink: #17241F;
+    --muted: #5C6C63;
+    --line: #D6DDD5;
+    --line-strong: #B9C4BB;
+    --gold: #A97C1F;
+    --gold-ink: #6B4C0B;
+    --cardface: #FFFDF7;
+    --cardface-ink: #1A1F1C;
+    --cardface-red: #B3261E;
+    --h-bg: #D6EDDC; --h-ink: #145231;
+    --s-bg: #F5D8D0; --s-ink: #7B2116;
+    --d-bg: #F8E6B0; --d-ink: #6A4A05;
+    --p-bg: #D4E2F6; --p-ink: #163F7C;
+    --r-bg: #E6DFF3; --r-ink: #4A3980;
+    --bar-neg: #C2573F;
+    --bar-pos: #2E7D4F;
+    --ring: #A97C1F;
+    --shadow: 0 1px 2px rgba(20, 40, 30, .08), 0 12px 32px -12px rgba(20, 40, 30, .25);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --felt: #0D2A20;
+      --felt-deep: #0A2119;
+      --card: #163229;
+      --ink: #ECF2EC;
+      --muted: #9DB4A7;
+      --line: #274A3C;
+      --line-strong: #37614F;
+      --gold: #D7AC4A;
+      --gold-ink: #F1D48A;
+      --cardface: #F7F4EA;
+      --cardface-ink: #1A1F1C;
+      --cardface-red: #B3261E;
+      --h-bg: #1E5A38; --h-ink: #CFF3DA;
+      --s-bg: #712C22; --s-ink: #FBDAD1;
+      --d-bg: #6C4F0E; --d-ink: #FCE9B8;
+      --p-bg: #204175; --p-ink: #D4E4FB;
+      --r-bg: #4B3B7A; --r-ink: #E8DFF8;
+      --bar-neg: #E07A62;
+      --bar-pos: #5FC08A;
+      --ring: #E9C263;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -14px rgba(0, 0, 0, .6);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --felt: #0D2A20;
+    --felt-deep: #0A2119;
+    --card: #163229;
+    --ink: #ECF2EC;
+    --muted: #9DB4A7;
+    --line: #274A3C;
+    --line-strong: #37614F;
+    --gold: #D7AC4A;
+    --gold-ink: #F1D48A;
+    --cardface: #F7F4EA;
+    --cardface-ink: #1A1F1C;
+    --cardface-red: #B3261E;
+    --h-bg: #1E5A38; --h-ink: #CFF3DA;
+    --s-bg: #712C22; --s-ink: #FBDAD1;
+    --d-bg: #6C4F0E; --d-ink: #FCE9B8;
+    --p-bg: #204175; --p-ink: #D4E4FB;
+    --r-bg: #4B3B7A; --r-ink: #E8DFF8;
+    --bar-neg: #E07A62;
+    --bar-pos: #5FC08A;
+    --ring: #E9C263;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -14px rgba(0, 0, 0, .6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--felt);
+    background-image: radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--felt) 70%, white 30%) 0%, var(--felt) 45%, var(--felt-deep) 100%);
+    color: var(--ink);
+    font-family: "Barlow", "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--gold-ink); }
+
+  .page {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 24px 20px 56px;
+    padding: calc(24px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(56px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; min-height: 26px; }
+  .topbar .back { font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .04em; text-decoration: none; }
+  .lang-switch { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 999px; overflow: hidden; margin-left: auto; }
+  .lang-switch button { border: 0; background: none; color: var(--muted); padding: 3px 10px; font: inherit; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .1em; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .lang-switch button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+  .lang-switch button:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+
+  /* ---------- header ---------- */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 32px;
+    margin-bottom: 20px;
+  }
+  .eyebrow {
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+  h1 {
+    font-family: "Bodoni Moda", "Didot", "Times New Roman", serif;
+    font-weight: 600;
+    font-size: clamp(34px, 5vw, 48px);
+    line-height: 1.02;
+    letter-spacing: -.01em;
+    margin: 6px 0 8px;
+    text-wrap: balance;
+  }
+  .lede {
+    max-width: 58ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 2px 18px;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--muted);
+    padding-left: 14px;
+    border-left: 2px solid var(--gold);
+    margin: 0;
+  }
+  .rules b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- legend ---------- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    align-items: center;
+    padding: 14px 0 18px;
+    border-top: 1px solid var(--line-strong);
+    font-size: 14px;
+  }
+  .legend .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sw {
+    display: inline-grid;
+    place-items: center;
+    width: 30px; height: 26px;
+    border-radius: 4px;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .a-H { background: var(--h-bg); color: var(--h-ink); }
+  .a-S { background: var(--s-bg); color: var(--s-ink); }
+  .a-D, .a-Ds { background: var(--d-bg); color: var(--d-ink); }
+  .a-P { background: var(--p-bg); color: var(--p-ink); }
+  .a-R, .a-Rh, .a-Rs { background: var(--r-bg); color: var(--r-ink); }
+
+  /* ---------- layout ---------- */
+  .board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 24px;
+    align-items: start;
+  }
+  .grids { display: grid; gap: 22px; min-width: 0; }
+
+  section.grid {
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 14px 14px 12px;
+    min-width: 0;
+  }
+  section.grid header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 4px 8px;
+  }
+  section.grid h2 {
+    font-family: "Bodoni Moda", "Didot", "Times New Roman", serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+  }
+  section.grid header span { color: var(--muted); font-size: 13px; }
+  .scroller { overflow-x: auto; }
+
+  table {
+    border-collapse: separate;
+    border-spacing: 3px;
+    width: 100%;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td { padding: 0; text-align: center; }
+  thead th {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    vertical-align: bottom;
+  }
+  thead th.corner { text-align: left; font-size: 11px; line-height: 1.2; }
+  .cardface {
+    display: inline-grid;
+    place-items: center;
+    width: 24px; height: 32px;
+    border-radius: 4px;
+    background: var(--cardface);
+    color: var(--cardface-ink);
+    border: 1px solid rgba(0, 0, 0, .18);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .15);
+    font-family: "Bodoni Moda", "Didot", serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .cardface.red { color: var(--cardface-red); }
+  tbody th {
+    font-weight: 600;
+    font-size: 15px;
+    text-align: right;
+    padding-right: 8px;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  tbody th small { color: var(--muted); font-weight: 500; font-size: 12px; margin-left: 4px; }
+  td button {
+    appearance: none;
+    border: 0;
+    width: 100%;
+    min-width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    transition: transform .08s ease, box-shadow .08s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  td button:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0, 0, 0, .18); }
+  td button:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+  td button[aria-pressed="true"] {
+    box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ring);
+    z-index: 1;
+  }
+
+  /* ---------- detail panel ---------- */
+  .detail {
+    position: sticky;
+    top: 16px;
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 16px 18px 18px;
+    display: grid;
+    gap: 12px;
+  }
+  .detail .who {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .detail .who .label { display: block; font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; font-family: "Barlow Condensed", sans-serif; font-weight: 600; }
+  .detail .who .hand {
+    font-family: "Bodoni Moda", "Didot", serif;
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 1.1;
+  }
+  .detail .who .hand small { font-family: "Barlow", sans-serif; font-weight: 500; font-size: 13px; color: var(--muted); margin-left: 6px; }
+  .verdict {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px;
+  }
+  .verdict .sw { width: 34px; height: 30px; font-size: 16px; }
+  .verdict b { font-weight: 600; }
+  .bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .bars li { display: grid; grid-template-columns: 78px 1fr 58px; align-items: center; gap: 8px; font-size: 13px; }
+  .bars li.best { font-weight: 600; }
+  .bars .name { color: var(--muted); }
+  .bars li.best .name { color: var(--ink); }
+  .bars .val { text-align: right; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .track { position: relative; height: 12px; background: color-mix(in srgb, var(--line) 60%, transparent); border-radius: 3px; }
+  .track .zero { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--line-strong); }
+  .track .fill { position: absolute; top: 0; bottom: 0; border-radius: 2px; opacity: .55; }
+  .bars li.best .track .fill { opacity: 1; }
+  .fill.pos { background: var(--bar-pos); }
+  .fill.neg { background: var(--bar-neg); }
+  .margin { margin: 0; font-size: 13px; color: var(--muted); }
+  .margin b { color: var(--ink); font-weight: 600; }
+  .comps { margin: 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+  .comps .t { display: block; font-family: "Barlow Condensed", sans-serif; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 11px; margin-bottom: 4px; }
+  .comps ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+  .comps li { display: flex; justify-content: space-between; gap: 6px; font-variant-numeric: tabular-nums; }
+  .comps li b { color: var(--ink); font-weight: 600; }
+  .comps li .sw { width: 22px; height: 18px; font-size: 11px; border-radius: 3px; }
+  .hint { font-size: 12px; color: var(--muted); margin: 0; }
+
+  /* ---------- notes ---------- */
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 22px;
+    margin-top: 30px;
+  }
+  .note { max-width: 62ch; }
+  .note h3 {
+    font-family: "Bodoni Moda", "Didot", serif;
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0 0 6px;
+  }
+  .note p { margin: 0 0 8px; color: var(--muted); }
+  .note ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; }
+  .note li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+  .note li .sw { width: 28px; height: 24px; font-size: 13px; margin-top: 1px; }
+  .note li span { font-size: 14px; }
+  .note li span b { font-weight: 600; }
+  .note li span em { color: var(--muted); font-style: normal; font-family: "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; }
+  .colophon { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--line-strong); font-size: 12.5px; color: var(--muted); max-width: 80ch; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 860px) {
+    .page { padding: 18px 12px 0; }
+    .page { padding: calc(18px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left)); }
+    .board { grid-template-columns: 1fr; gap: 16px; }
+    .detail {
+      position: sticky;
+      top: auto;
+      bottom: 0;
+      order: 2;
+      border-radius: 10px 10px 0 0;
+      box-shadow: 0 -8px 30px -8px rgba(0, 0, 0, .35);
+      margin: 0 -12px;
+      padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+      gap: 8px;
+    }
+    .detail .who { padding-bottom: 6px; }
+    .detail .who .hand { font-size: 24px; }
+    .verdict { font-size: 14px; }
+    .verdict .sw { width: 30px; height: 26px; font-size: 14px; }
+    .bars { gap: 4px; }
+    .bars li { font-size: 12.5px; grid-template-columns: 70px 1fr 54px; }
+    .track { height: 9px; }
+    .margin { font-size: 12.5px; }
+    .comps, .hint { display: none; }
+    .rules { grid-template-columns: 1fr; }
+    section.grid { padding: 10px 8px 8px; border-radius: 8px; }
+    table { border-spacing: 2px; }
+    td button { min-width: 26px; height: 28px; font-size: 14px; }
+    tbody th { font-size: 14px; padding-right: 6px; }
+    .cardface { width: 21px; height: 28px; font-size: 13px; }
+    .notes, .colophon { padding: 0 0 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    td button { transition: none; }
+    td button:hover { transform: none; }
+  }
+  @media print {
+    body { background: white; color: black; }
+    .detail, .hint, .topbar { display: none; }
+    .board { grid-template-columns: 1fr; }
+    section.grid { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+    td button, .sw { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+</style>
+
+<div class="page">
+  <div class="topbar">
+    <!--PWA-NAV-->
+    <div class="lang-switch" role="group" aria-label="Kalba / Language">
+      <button type="button" data-lang="lt" aria-pressed="true">LT</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+  <header class="masthead">
+    <div>
+      <div class="eyebrow" data-i18n="eyebrow"></div>
+      <h1 data-i18n="title"></h1>
+      <p class="lede" data-i18n="lede"></p>
+    </div>
+    <dl class="rules">
+      <div data-i18n="r1"></div>
+      <div data-i18n="r2"></div>
+      <div data-i18n="r3"></div>
+      <div data-i18n="r4"></div>
+      <div data-i18n="r5"></div>
+      <div data-i18n="r6"></div>
+      <div data-i18n="r7"></div>
+      <div data-i18n="r8"></div>
+      <div data-i18n="r9"></div>
+    </dl>
+  </header>
+
+  <div class="legend">
+    <span class="key"><span class="sw a-H">H</span> <span data-i18n="lH"></span></span>
+    <span class="key"><span class="sw a-S">S</span> <span data-i18n="lS"></span></span>
+    <span class="key"><span class="sw a-D">D</span> <span data-i18n="lD"></span></span>
+    <span class="key"><span class="sw a-D">Ds</span> <span data-i18n="lDs"></span></span>
+    <span class="key"><span class="sw a-P">P</span> <span data-i18n="lP"></span></span>
+    <span class="key"><span class="sw a-R">Rh</span> <span data-i18n="lR"></span></span>
+  </div>
+
+  <div class="board">
+    <div class="grids" id="grids"></div>
+
+    <aside class="detail" id="detail" aria-live="polite">
+      <div class="who">
+        <div><span class="label" data-i18n="yourHand"></span><span class="hand" id="d-hand">–</span></div>
+        <div><span class="label" data-i18n="dealer"></span><span class="cardface" id="d-up">–</span></div>
+      </div>
+      <div class="verdict" id="d-verdict"></div>
+      <ul class="bars" id="d-bars"></ul>
+      <p class="margin" id="d-margin"></p>
+      <div class="comps" id="d-comps"></div>
+      <p class="hint" data-i18n="hint"></p>
+    </aside>
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h3 data-i18n="nDiffH"></h3>
+      <p data-i18n="nDiffP"></p>
+      <ul id="diffs"></ul>
+    </div>
+    <div class="note">
+      <h3 data-i18n="nCloseH"></h3>
+      <p data-i18n="nCloseP"></p>
+      <ul id="close"></ul>
+    </div>
+    <div class="note">
+      <h3 data-i18n="nInsH"></h3>
+      <p data-i18n="nInsP1"></p>
+      <p data-i18n="nInsP2"></p>
+    </div>
+  </div>
+
+  <p class="colophon" data-i18n="colophon"></p>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  const LANG_KEY = 'bj-lang';
+  const L = {
+    lt: {
+      title: 'European Black Jack strategija',
+      eyebrow: 'Europietiškos taisyklės · 6 kaladės',
+      lede: 'Matematiškai geriausias sprendimas kiekvienai rankai. Apskaičiuota tiksliu sprendikliu pagal stalo taisykles, ne perrašyta iš bendros lentelės.',
+      r1: '<b>Krupjė</b> ima vieną kortą, antrą – po visų sprendimų',
+      r2: '<b>Krupjė BJ</b> paima ir double, ir split statymus',
+      r3: '<b>Soft 17</b> krupjė sustoja',
+      r4: '<b>Double</b> su bet kuriomis 2 kortomis, ir po split',
+      r5: '<b>Tūzai</b> skeliami 1 kartą, po 1 kortą, be double',
+      r6: '<b>Kitos poros</b> skeliamos iki 4 rankų',
+      r7: '<b>Black Jack</b> moka 3:2',
+      r8: '<b>Pasidavimas</b> prieš 2–10, tik su pirmomis 2 kortomis, grąžinama pusė',
+      r9: '<b>Draudimas</b> 2:1',
+      lH: 'Imti (Hit)', lS: 'Stoti (Stand)', lD: 'Dvigubinti, jei negalima – imti', lDs: 'Dvigubinti, jei negalima – stoti', lP: 'Skelti (Split)', lR: 'Pasiduoti (Surrender), jei negalima – imti',
+      gHard: 'Kietos rankos', gHardSub: 'be tūzo arba tūzas tik kaip 1',
+      gSoft: 'Minkštos rankos', gSoftSub: 'tūzas skaičiuojamas kaip 11',
+      gPairs: 'Poros', gPairsSub: 'skelti ar žaisti kaip įprastą ranką',
+      corner: 'Jūsų kortos ↓<br>Krupjė →',
+      hard: 'Kieta', softHand: 'Minkšta A ir {v}', pairHand: 'Pora {n} {n}', vs: 'prieš',
+      a_stand: 'Stoti', a_hit: 'Imti', a_double: 'Dvigubinti', a_split: 'Skelti', a_surrender: 'Pasiduoti',
+      yourHand: 'Jūsų ranka', dealer: 'Krupjė', best: 'Geriausia:',
+      ifNoDouble: 'jei dvigubinti negalima – {alt}', ifNoSurrender: 'jei pasiduoti negalima – {alt}',
+      margin: 'Pranašumas prieš „{x}“: <b>{m}</b> statymo{close}', marginClose: ' · ribinis langelis',
+      byCards: 'Pagal kortas',
+      hint: 'EV – tikėtinas rezultatas, procentais nuo pradinio statymo. Spauskite bet kurį langelį.',
+      nDiffH: 'Kuo skiriasi nuo įprastos amerikietiškos lentelės',
+      nDiffP: 'Krupjė antrą kortą gauna tik po jūsų sprendimų, o surinkęs Black Jack paima ir padvigubintą, ir išskirtas rankas. Todėl prieš 10 ir tūzą papildomi pinigai ant stalo kainuoja daugiau, negu duoda. Pasidavimas čia veikia atvirkščiai: pusė statymo grąžinama dar prieš krupjė antrą kortą, tad prieš 10 pasiduoti verta dažniau nei amerikietiškame variante.',
+      diffItem: '<b>{row} {vs} {up}</b>: {act}, ne {usAct} ({usLetter}). <em>{evs}</em>',
+      nCloseH: 'Ribiniai langeliai',
+      nCloseP: 'Čia skirtumas tarp geriausio ir antro varianto mažesnis nei 1 % statymo. Suklydę beveik nieko neprarandate.',
+      closeItem: '<b>{row} {vs} {up}</b>: {act} vietoj „{second}“ <em>· skirtumas {m}</em>',
+      nInsH: 'Draudimas ir „even money“',
+      nInsP1: 'Draudimas laimi, kai antra krupjė korta yra dešimtukas. 6 kaladėse tokių kortų tikimybė yra apie 30,9 %, o statymas apsimoka tik nuo 33,3 %. Vidutinis rezultatas – apie −7 % nuo draudimo statymo, todėl draudimo neimkite niekada.',
+      nInsP2: 'Even money (1:1 iš karto, kai turite Black Jack prieš tūzą) yra tas pats draudimas kitu pavadinimu. Laukdami gaunate 3:2 su 69,3 % tikimybe, o 30,7 % atvejų būna lygiosios: vidutiniškai +103,9 % statymo. Even money duoda lygiai +100 %, todėl jo taip pat neimkite.',
+      colophon: 'Sprendiklis skaičiuoja tikslias krupjė baigčių tikimybes 6 kaladžių batui su pašalintomis jūsų ir krupjė kortomis, o žaidėjo ėjimus – rekursyviai iki pat galo (kompozicijos lygmeniu). Kietų rankų eilutėse rodomas dviejų kortų kombinacijų svertinis vidurkis; poroms ir minkštoms rankoms – tikslios reikšmės. Išskirtų rankų EV – standartinė aproksimacija (kiekviena ranka vertinama atskirai, kita išskirta korta pašalinta iš bato). Draudimo tikimybė paskaičiuota nežinant jūsų kortų.',
+      back: '← Žaidimas',
+    },
+    en: {
+      title: 'European Black Jack strategy',
+      eyebrow: 'European rules · 6 decks',
+      lede: 'The mathematically best decision for every hand. Computed by an exact solver for these table rules, not copied from a generic chart.',
+      r1: '<b>Dealer</b> takes one card, the second after all decisions',
+      r2: '<b>Dealer BJ</b> takes double and split bets too',
+      r3: '<b>Soft 17</b> dealer stands',
+      r4: '<b>Double</b> on any 2 cards, also after a split',
+      r5: '<b>Aces</b> split once, 1 card each, no double',
+      r6: '<b>Other pairs</b> split up to 4 hands',
+      r7: '<b>Black Jack</b> pays 3:2',
+      r8: '<b>Surrender</b> against 2–10, first 2 cards only, half the bet back',
+      r9: '<b>Insurance</b> 2:1',
+      lH: 'Hit', lS: 'Stand', lD: 'Double, otherwise hit', lDs: 'Double, otherwise stand', lP: 'Split', lR: 'Surrender, otherwise hit',
+      gHard: 'Hard hands', gHardSub: 'no ace, or the ace counts as 1',
+      gSoft: 'Soft hands', gSoftSub: 'the ace counts as 11',
+      gPairs: 'Pairs', gPairsSub: 'split or play as a normal hand',
+      corner: 'Your cards ↓<br>Dealer →',
+      hard: 'Hard', softHand: 'Soft A and {v}', pairHand: 'Pair {n} {n}', vs: 'vs',
+      a_stand: 'Stand', a_hit: 'Hit', a_double: 'Double', a_split: 'Split', a_surrender: 'Surrender',
+      yourHand: 'Your hand', dealer: 'Dealer', best: 'Best:',
+      ifNoDouble: 'if doubling is not allowed – {alt}', ifNoSurrender: 'if surrender is not allowed – {alt}',
+      margin: 'Edge over “{x}”: <b>{m}</b> of the bet{close}', marginClose: ' · marginal cell',
+      byCards: 'By cards',
+      hint: 'EV – expected result, as % of the initial bet. Click any cell.',
+      nDiffH: 'How it differs from the usual American chart',
+      nDiffP: 'The dealer gets the second card only after your decisions, and a dealer Black Jack takes doubled and split hands too. So against a 10 or an ace, extra money on the table costs more than it earns. Surrender works the other way: half the bet comes back before the dealer’s second card, so against a 10 it pays to surrender more often than in the American game.',
+      diffItem: '<b>{row} {vs} {up}</b>: {act}, not {usAct} ({usLetter}). <em>{evs}</em>',
+      nCloseH: 'Marginal cells',
+      nCloseP: 'Here the gap between the best and the second-best option is under 1 % of the bet. A mistake costs almost nothing.',
+      closeItem: '<b>{row} {vs} {up}</b>: {act} instead of “{second}” <em>· difference {m}</em>',
+      nInsH: 'Insurance and even money',
+      nInsP1: 'Insurance wins when the dealer’s second card is a ten. In 6 decks that probability is about 30.9 %, and the bet only pays from 33.3 %. The average result is about −7 % of the insurance bet, so never take insurance.',
+      nInsP2: 'Even money (1:1 at once when you hold Black Jack against an ace) is insurance under another name. Waiting gives 3:2 with 69.3 % probability and a push 30.7 % of the time: +103.9 % of the bet on average. Even money pays exactly +100 %, so decline it too.',
+      colophon: 'The solver computes exact dealer outcome probabilities for a 6-deck shoe with your cards and the dealer’s card removed, and the player’s moves recursively to the end (composition level). Hard-total rows show the dealing-weighted average of the two-card combinations; pairs and soft hands are exact. Split EVs use the standard approximation (each hand valued separately, the other split card removed from the shoe). The insurance probability assumes your cards are unknown.',
+      back: '← Game',
+    },
+  };
+  let lang = (() => {
+    try { const s = localStorage.getItem(LANG_KEY); if (s === 'lt' || s === 'en') return s; } catch (e) { /* ignore */ }
+    return (navigator.language || 'en').toLowerCase().startsWith('lt') ? 'lt' : 'en';
+  })();
+  const t = (k, vars) => {
+    let s = (L[lang] && L[lang][k]) ?? L.lt[k] ?? k;
+    if (vars) for (const [n, v] of Object.entries(vars)) s = s.split('{' + n + '}').join(v);
+    return s;
+  };
+  const LETTER_ACTION = { S: 'stand', H: 'hit', D: 'double', Ds: 'double', P: 'split', Rh: 'surrender', Rs: 'surrender' };
+  const name = (a) => t('a_' + a);
+  const letterName = (l) => name(LETTER_ACTION[l]);
+  const lower = (s) => s.toLowerCase();
+
+  const dec = () => lang === 'lt' ? ',' : '.';
+  const fmt = (ev) => {
+    const v = ev * 100;
+    const s = Math.abs(v).toFixed(1).replace('.', dec());
+    return (v < 0 ? '−' : v > 0 ? '+' : '') + s + ' %';
+  };
+  const upFace = (u) => `<span class="cardface${u === 'A' ? ' red' : ''}">${u}</span>`;
+
+  const grids = document.getElementById('grids');
+  let selected = null;
+  let selectedKey = 'hard|11|' + DATA.up.indexOf('10');
+
+  const rowsHard = Object.keys(DATA.hard).filter(tt => +tt >= 5).map(tt => ({
+    key: 'hard|' + tt, label: tt, aria: () => t('hard') + ' ' + tt, cells: DATA.hard[tt]
+  }));
+  const rowsSoft = Object.keys(DATA.soft).map(v => ({
+    key: 'soft|' + v, label: 'A,' + v, sub: 'soft ' + (11 + +v), aria: () => t('softHand', { v }), cells: DATA.soft[v]
+  }));
+  const rowsPairs = Object.keys(DATA.pairs).map(v => {
+    const n = v === '1' ? 'A' : v;
+    return { key: 'pairs|' + v, label: n + ',' + n, aria: () => t('pairHand', { n }), cells: DATA.pairs[v] };
+  });
+  const cellByKey = new Map();
+  for (const rows of [rowsHard, rowsSoft, rowsPairs]) {
+    for (const row of rows) row.cells.forEach((c, i) => cellByKey.set(row.key + '|' + i, { row, i, cell: c }));
+  }
+
+  function buildGrid(id, title, subtitle, rows) {
+    const sec = document.createElement('section');
+    sec.className = 'grid';
+    sec.id = id;
+    let html = `<header><h2>${title}</h2><span>${subtitle}</span></header><div class="scroller"><table>`;
+    html += `<thead><tr><th class="corner">${t('corner')}</th>` +
+      DATA.up.map(u => `<th scope="col">${upFace(u)}</th>`).join('') + `</tr></thead><tbody>`;
+    for (const row of rows) {
+      html += `<tr><th scope="row">${row.label}${row.sub ? `<small>${row.sub}</small>` : ''}</th>`;
+      row.cells.forEach((c, i) => {
+        html += `<td><button type="button" class="a-${c.a}" data-key="${row.key}|${i}" aria-label="${row.aria()} ${t('vs')} ${DATA.up[i]}: ${letterName(c.a)}">${c.a}</button></td>`;
+      });
+      html += `</tr>`;
+    }
+    html += `</tbody></table></div>`;
+    sec.innerHTML = html;
+    grids.appendChild(sec);
+  }
+  function buildGrids() {
+    grids.innerHTML = '';
+    buildGrid('hard', t('gHard'), t('gHardSub'), rowsHard);
+    buildGrid('soft', t('gSoft'), t('gSoftSub'), rowsSoft);
+    buildGrid('pairs', t('gPairs'), t('gPairsSub'), rowsPairs);
+  }
+
+  function show(key) {
+    const hit = cellByKey.get(key);
+    if (!hit) return;
+    selectedKey = key;
+    if (selected) selected.setAttribute('aria-pressed', 'false');
+    selected = grids.querySelector(`button[data-key="${key}"]`);
+    if (selected) selected.setAttribute('aria-pressed', 'true');
+    const { row, i, cell } = hit;
+    const up = DATA.up[i];
+    document.getElementById('d-hand').innerHTML = row.label + (row.sub ? `<small>${row.sub}</small>` : '');
+    const upEl = document.getElementById('d-up');
+    upEl.textContent = up;
+    upEl.classList.toggle('red', up === 'A');
+
+    const entries = Object.entries(cell.ev).sort((a, b) => b[1] - a[1]);
+    const best = entries[0];
+    const alt = (cell.a === 'D' || cell.a === 'Rh') ? lower(name('hit')) : lower(name('stand'));
+    document.getElementById('d-verdict').innerHTML =
+      `<span class="sw a-${cell.a}">${cell.a}</span><span>${t('best')} <b>${letterName(cell.a)}</b>` +
+      (cell.a === 'D' || cell.a === 'Ds' ? `<br><small style="color:var(--muted)">${t('ifNoDouble', { alt })}</small>` : '') +
+      (cell.a === 'Rh' || cell.a === 'Rs' ? `<br><small style="color:var(--muted)">${t('ifNoSurrender', { alt })}</small>` : '') +
+      `</span>`;
+
+    const scale = Math.max(0.25, ...entries.map(e => Math.abs(e[1])));
+    document.getElementById('d-bars').innerHTML = entries.map(([k, v], idx) => {
+      const pct = Math.abs(v) / scale * 50;
+      const left = v < 0 ? 50 - pct : 50;
+      return `<li class="${idx === 0 ? 'best' : ''}"><span class="name">${name(k)}</span>` +
+        `<span class="track"><span class="zero" style="left:50%"></span><span class="fill ${v < 0 ? 'neg' : 'pos'}" style="left:${left}%;width:${pct}%"></span></span>` +
+        `<span class="val">${fmt(v)}</span></li>`;
+    }).join('');
+
+    const margin = entries.length > 1 ? best[1] - entries[1][1] : 0;
+    document.getElementById('d-margin').innerHTML = entries.length > 1
+      ? t('margin', { x: lower(name(entries[1][0])), m: fmt(margin), close: margin < 0.01 ? t('marginClose') : '' })
+      : '';
+
+    const comps = document.getElementById('d-comps');
+    if (cell.comps && cell.comps.length > 1) {
+      comps.innerHTML = `<span class="t">${t('byCards')}</span><ul>` + cell.comps.map(c =>
+        `<li><b>${c.cards.join('+')}</b><span><span class="sw a-${c.a}">${c.a}</span> ${fmt(c.best)}</span></li>`).join('') + `</ul>`;
+      comps.hidden = false;
+    } else {
+      comps.innerHTML = '';
+      comps.hidden = true;
+    }
+  }
+
+  grids.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-key]');
+    if (b) show(b.dataset.key);
+  });
+
+  const rowName = (d) => d.section === 'hard' ? t('hard') + ' ' + d.row
+    : d.section === 'soft' ? 'A,' + d.row
+    : (d.row === '1' ? 'A,A' : d.row + ',' + d.row);
+  function buildNotes() {
+    document.getElementById('diffs').innerHTML = DATA.diffs.map(d => {
+      const evs = Object.entries(d.evs).sort((a, b) => b[1] - a[1]);
+      return `<li><span class="sw a-${d.euro}">${d.euro}</span><span>` + t('diffItem', {
+        row: rowName(d), vs: t('vs'), up: d.up, act: lower(letterName(d.euro)), usAct: lower(letterName(d.us)), usLetter: d.us,
+        evs: evs.map(([k, v]) => lower(name(k)) + ' ' + fmt(v)).join(' · '),
+      }) + `</span></li>`;
+    }).join('');
+    document.getElementById('close').innerHTML = DATA.close.map(d =>
+      `<li><span class="sw a-${d.a}">${d.a}</span><span>` + t('closeItem', {
+        row: rowName(d), vs: t('vs'), up: d.up, act: lower(letterName(d.a)), second: lower(name(d.second)), m: fmt(d.margin),
+      }) + `</span></li>`).join('');
+  }
+
+  function applyLanguage() {
+    document.documentElement.lang = lang;
+    document.title = t('title');
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+    document.querySelectorAll('.lang-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    buildGrids();
+    buildNotes();
+    selected = null;
+    show(selectedKey);
+  }
+  document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => {
+    lang = b.dataset.lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
+    applyLanguage();
+  }));
+
+  applyLanguage();
+})();
+</script>

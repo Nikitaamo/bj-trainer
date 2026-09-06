@@ -1,0 +1,12 @@
+{
+  "name": "bj-solver",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "European Black Jack basic-strategy solver (no hole card rules)",
+  "scripts": {
+    "generate": "node generate.js",
+    "test": "node test.js",
+    "build:site": "node build-site.js"
+  }
+}

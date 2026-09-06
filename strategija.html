@@ -1,0 +1,716 @@
+<title>European Black Jack strategija</title>
+<!--PWA-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600;6..96,700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --felt: #E3E9E2;
+    --felt-deep: #D3DDD4;
+    --card: #FBFAF6;
+    --ink: #17241F;
+    --muted: #5C6C63;
+    --line: #D6DDD5;
+    --line-strong: #B9C4BB;
+    --gold: #A97C1F;
+    --gold-ink: #6B4C0B;
+    --cardface: #FFFDF7;
+    --cardface-ink: #1A1F1C;
+    --cardface-red: #B3261E;
+    --h-bg: #D6EDDC; --h-ink: #145231;
+    --s-bg: #F5D8D0; --s-ink: #7B2116;
+    --d-bg: #F8E6B0; --d-ink: #6A4A05;
+    --p-bg: #D4E2F6; --p-ink: #163F7C;
+    --r-bg: #E6DFF3; --r-ink: #4A3980;
+    --bar-neg: #C2573F;
+    --bar-pos: #2E7D4F;
+    --ring: #A97C1F;
+    --shadow: 0 1px 2px rgba(20, 40, 30, .08), 0 12px 32px -12px rgba(20, 40, 30, .25);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --felt: #0D2A20;
+      --felt-deep: #0A2119;
+      --card: #163229;
+      --ink: #ECF2EC;
+      --muted: #9DB4A7;
+      --line: #274A3C;
+      --line-strong: #37614F;
+      --gold: #D7AC4A;
+      --gold-ink: #F1D48A;
+      --cardface: #F7F4EA;
+      --cardface-ink: #1A1F1C;
+      --cardface-red: #B3261E;
+      --h-bg: #1E5A38; --h-ink: #CFF3DA;
+      --s-bg: #712C22; --s-ink: #FBDAD1;
+      --d-bg: #6C4F0E; --d-ink: #FCE9B8;
+      --p-bg: #204175; --p-ink: #D4E4FB;
+      --r-bg: #4B3B7A; --r-ink: #E8DFF8;
+      --bar-neg: #E07A62;
+      --bar-pos: #5FC08A;
+      --ring: #E9C263;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -14px rgba(0, 0, 0, .6);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --felt: #0D2A20;
+    --felt-deep: #0A2119;
+    --card: #163229;
+    --ink: #ECF2EC;
+    --muted: #9DB4A7;
+    --line: #274A3C;
+    --line-strong: #37614F;
+    --gold: #D7AC4A;
+    --gold-ink: #F1D48A;
+    --cardface: #F7F4EA;
+    --cardface-ink: #1A1F1C;
+    --cardface-red: #B3261E;
+    --h-bg: #1E5A38; --h-ink: #CFF3DA;
+    --s-bg: #712C22; --s-ink: #FBDAD1;
+    --d-bg: #6C4F0E; --d-ink: #FCE9B8;
+    --p-bg: #204175; --p-ink: #D4E4FB;
+    --r-bg: #4B3B7A; --r-ink: #E8DFF8;
+    --bar-neg: #E07A62;
+    --bar-pos: #5FC08A;
+    --ring: #E9C263;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -14px rgba(0, 0, 0, .6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--felt);
+    background-image: radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--felt) 70%, white 30%) 0%, var(--felt) 45%, var(--felt-deep) 100%);
+    color: var(--ink);
+    font-family: "Barlow", "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--gold-ink); }
+
+  .page {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 24px 20px 56px;
+    padding: calc(24px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(56px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; min-height: 26px; }
+  .topbar .back { font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .04em; text-decoration: none; }
+  .lang-switch { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 999px; overflow: hidden; margin-left: auto; }
+  .lang-switch button { border: 0; background: none; color: var(--muted); padding: 3px 10px; font: inherit; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .1em; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .lang-switch button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+  .lang-switch button:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+
+  /* ---------- header ---------- */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 32px;
+    margin-bottom: 20px;
+  }
+  .eyebrow {
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+  h1 {
+    font-family: "Bodoni Moda", "Didot", "Times New Roman", serif;
+    font-weight: 600;
+    font-size: clamp(34px, 5vw, 48px);
+    line-height: 1.02;
+    letter-spacing: -.01em;
+    margin: 6px 0 8px;
+    text-wrap: balance;
+  }
+  .lede {
+    max-width: 58ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 2px 18px;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--muted);
+    padding-left: 14px;
+    border-left: 2px solid var(--gold);
+    margin: 0;
+  }
+  .rules b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- legend ---------- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    align-items: center;
+    padding: 14px 0 18px;
+    border-top: 1px solid var(--line-strong);
+    font-size: 14px;
+  }
+  .legend .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sw {
+    display: inline-grid;
+    place-items: center;
+    width: 30px; height: 26px;
+    border-radius: 4px;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .a-H { background: var(--h-bg); color: var(--h-ink); }
+  .a-S { background: var(--s-bg); color: var(--s-ink); }
+  .a-D, .a-Ds { background: var(--d-bg); color: var(--d-ink); }
+  .a-P { background: var(--p-bg); color: var(--p-ink); }
+  .a-R, .a-Rh, .a-Rs { background: var(--r-bg); color: var(--r-ink); }
+
+  /* ---------- layout ---------- */
+  .board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 24px;
+    align-items: start;
+  }
+  .grids { display: grid; gap: 22px; min-width: 0; }
+
+  section.grid {
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 14px 14px 12px;
+    min-width: 0;
+  }
+  section.grid header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 4px 8px;
+  }
+  section.grid h2 {
+    font-family: "Bodoni Moda", "Didot", "Times New Roman", serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+  }
+  section.grid header span { color: var(--muted); font-size: 13px; }
+  .scroller { overflow-x: auto; }
+
+  table {
+    border-collapse: separate;
+    border-spacing: 3px;
+    width: 100%;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td { padding: 0; text-align: center; }
+  thead th {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    vertical-align: bottom;
+  }
+  thead th.corner { text-align: left; font-size: 11px; line-height: 1.2; }
+  .cardface {
+    display: inline-grid;
+    place-items: center;
+    width: 24px; height: 32px;
+    border-radius: 4px;
+    background: var(--cardface);
+    color: var(--cardface-ink);
+    border: 1px solid rgba(0, 0, 0, .18);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .15);
+    font-family: "Bodoni Moda", "Didot", serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .cardface.red { color: var(--cardface-red); }
+  tbody th {
+    font-weight: 600;
+    font-size: 15px;
+    text-align: right;
+    padding-right: 8px;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  tbody th small { color: var(--muted); font-weight: 500; font-size: 12px; margin-left: 4px; }
+  td button {
+    appearance: none;
+    border: 0;
+    width: 100%;
+    min-width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    transition: transform .08s ease, box-shadow .08s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  td button:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0, 0, 0, .18); }
+  td button:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+  td button[aria-pressed="true"] {
+    box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ring);
+    z-index: 1;
+  }
+
+  /* ---------- detail panel ---------- */
+  .detail {
+    position: sticky;
+    top: 16px;
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 16px 18px 18px;
+    display: grid;
+    gap: 12px;
+  }
+  .detail .who {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .detail .who .label { display: block; font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; font-family: "Barlow Condensed", sans-serif; font-weight: 600; }
+  .detail .who .hand {
+    font-family: "Bodoni Moda", "Didot", serif;
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 1.1;
+  }
+  .detail .who .hand small { font-family: "Barlow", sans-serif; font-weight: 500; font-size: 13px; color: var(--muted); margin-left: 6px; }
+  .verdict {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px;
+  }
+  .verdict .sw { width: 34px; height: 30px; font-size: 16px; }
+  .verdict b { font-weight: 600; }
+  .bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .bars li { display: grid; grid-template-columns: 78px 1fr 58px; align-items: center; gap: 8px; font-size: 13px; }
+  .bars li.best { font-weight: 600; }
+  .bars .name { color: var(--muted); }
+  .bars li.best .name { color: var(--ink); }
+  .bars .val { text-align: right; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .track { position: relative; height: 12px; background: color-mix(in srgb, var(--line) 60%, transparent); border-radius: 3px; }
+  .track .zero { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--line-strong); }
+  .track .fill { position: absolute; top: 0; bottom: 0; border-radius: 2px; opacity: .55; }
+  .bars li.best .track .fill { opacity: 1; }
+  .fill.pos { background: var(--bar-pos); }
+  .fill.neg { background: var(--bar-neg); }
+  .margin { margin: 0; font-size: 13px; color: var(--muted); }
+  .margin b { color: var(--ink); font-weight: 600; }
+  .comps { margin: 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+  .comps .t { display: block; font-family: "Barlow Condensed", sans-serif; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 11px; margin-bottom: 4px; }
+  .comps ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+  .comps li { display: flex; justify-content: space-between; gap: 6px; font-variant-numeric: tabular-nums; }
+  .comps li b { color: var(--ink); font-weight: 600; }
+  .comps li .sw { width: 22px; height: 18px; font-size: 11px; border-radius: 3px; }
+  .hint { font-size: 12px; color: var(--muted); margin: 0; }
+
+  /* ---------- notes ---------- */
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 22px;
+    margin-top: 30px;
+  }
+  .note { max-width: 62ch; }
+  .note h3 {
+    font-family: "Bodoni Moda", "Didot", serif;
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0 0 6px;
+  }
+  .note p { margin: 0 0 8px; color: var(--muted); }
+  .note ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; }
+  .note li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+  .note li .sw { width: 28px; height: 24px; font-size: 13px; margin-top: 1px; }
+  .note li span { font-size: 14px; }
+  .note li span b { font-weight: 600; }
+  .note li span em { color: var(--muted); font-style: normal; font-family: "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; }
+  .colophon { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--line-strong); font-size: 12.5px; color: var(--muted); max-width: 80ch; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 860px) {
+    .page { padding: 18px 12px 0; }
+    .page { padding: calc(18px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left)); }
+    .board { grid-template-columns: 1fr; gap: 16px; }
+    .detail {
+      position: sticky;
+      top: auto;
+      bottom: 0;
+      order: 2;
+      border-radius: 10px 10px 0 0;
+      box-shadow: 0 -8px 30px -8px rgba(0, 0, 0, .35);
+      margin: 0 -12px;
+      padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+      gap: 8px;
+    }
+    .detail .who { padding-bottom: 6px; }
+    .detail .who .hand { font-size: 24px; }
+    .verdict { font-size: 14px; }
+    .verdict .sw { width: 30px; height: 26px; font-size: 14px; }
+    .bars { gap: 4px; }
+    .bars li { font-size: 12.5px; grid-template-columns: 70px 1fr 54px; }
+    .track { height: 9px; }
+    .margin { font-size: 12.5px; }
+    .comps, .hint { display: none; }
+    .rules { grid-template-columns: 1fr; }
+    section.grid { padding: 10px 8px 8px; border-radius: 8px; }
+    table { border-spacing: 2px; }
+    td button { min-width: 26px; height: 28px; font-size: 14px; }
+    tbody th { font-size: 14px; padding-right: 6px; }
+    .cardface { width: 21px; height: 28px; font-size: 13px; }
+    .notes, .colophon { padding: 0 0 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    td button { transition: none; }
+    td button:hover { transform: none; }
+  }
+  @media print {
+    body { background: white; color: black; }
+    .detail, .hint, .topbar { display: none; }
+    .board { grid-template-columns: 1fr; }
+    section.grid { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+    td button, .sw { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+</style>
+
+<div class="page">
+  <div class="topbar">
+    <!--PWA-NAV-->
+    <div class="lang-switch" role="group" aria-label="Kalba / Language">
+      <button type="button" data-lang="lt" aria-pressed="true">LT</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+  <header class="masthead">
+    <div>
+      <div class="eyebrow" data-i18n="eyebrow"></div>
+      <h1 data-i18n="title"></h1>
+      <p class="lede" data-i18n="lede"></p>
+    </div>
+    <dl class="rules">
+      <div data-i18n="r1"></div>
+      <div data-i18n="r2"></div>
+      <div data-i18n="r3"></div>
+      <div data-i18n="r4"></div>
+      <div data-i18n="r5"></div>
+      <div data-i18n="r6"></div>
+      <div data-i18n="r7"></div>
+      <div data-i18n="r8"></div>
+      <div data-i18n="r9"></div>
+    </dl>
+  </header>
+
+  <div class="legend">
+    <span class="key"><span class="sw a-H">H</span> <span data-i18n="lH"></span></span>
+    <span class="key"><span class="sw a-S">S</span> <span data-i18n="lS"></span></span>
+    <span class="key"><span class="sw a-D">D</span> <span data-i18n="lD"></span></span>
+    <span class="key"><span class="sw a-D">Ds</span> <span data-i18n="lDs"></span></span>
+    <span class="key"><span class="sw a-P">P</span> <span data-i18n="lP"></span></span>
+    <span class="key"><span class="sw a-R">Rh</span> <span data-i18n="lR"></span></span>
+  </div>
+
+  <div class="board">
+    <div class="grids" id="grids"></div>
+
+    <aside class="detail" id="detail" aria-live="polite">
+      <div class="who">
+        <div><span class="label" data-i18n="yourHand"></span><span class="hand" id="d-hand">–</span></div>
+        <div><span class="label" data-i18n="dealer"></span><span class="cardface" id="d-up">–</span></div>
+      </div>
+      <div class="verdict" id="d-verdict"></div>
+      <ul class="bars" id="d-bars"></ul>
+      <p class="margin" id="d-margin"></p>
+      <div class="comps" id="d-comps"></div>
+      <p class="hint" data-i18n="hint"></p>
+    </aside>
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h3 data-i18n="nDiffH"></h3>
+      <p data-i18n="nDiffP"></p>
+      <ul id="diffs"></ul>
+    </div>
+    <div class="note">
+      <h3 data-i18n="nCloseH"></h3>
+      <p data-i18n="nCloseP"></p>
+      <ul id="close"></ul>
+    </div>
+    <div class="note">
+      <h3 data-i18n="nInsH"></h3>
+      <p data-i18n="nInsP1"></p>
+      <p data-i18n="nInsP2"></p>
+    </div>
+  </div>
+
+  <p class="colophon" data-i18n="colophon"></p>
+</div>
+
+<script id="data" type="application/json">{"up":["2","3","4","5","6","7","8","9","10","A"],"hard":{"4":[{"a":"H","ev":{"stand":-0.2925,"hit":-0.1147,"double":-0.5851,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"P","best":-0.0778}]},{"a":"H","ev":{"stand":-0.2513,"hit":-0.0821,"double":-0.5026,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"P","best":-0.0061}]},{"a":"H","ev":{"stand":-0.2077,"hit":-0.0468,"double":-0.4154,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"P","best":0.0696}]},{"a":"H","ev":{"stand":-0.158,"hit":-0.005,"double":-0.3159,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"P","best":0.1736}]},{"a":"H","ev":{"stand":-0.149,"hit":0.0146,"double":-0.298,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"P","best":0.2396}]},{"a":"H","ev":{"stand":-0.4746,"hit":-0.0888,"double":-0.9492,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"P","best":0.0083}]},{"a":"H","ev":{"stand":-0.5112,"hit":-0.1568,"double":-1.0225,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"H","best":-0.1568}]},{"a":"H","ev":{"stand":-0.5401,"hit":-0.2379,"double":-1.0803,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"H","best":-0.2379}]},{"a":"H","ev":{"stand":-0.5772,"hit":-0.3425,"double":-1.1544,"surrender":-0.5},"comps":[{"cards":[2,2],"a":"H","best":-0.3425}]},{"a":"H","ev":{"stand":-0.7698,"hit":-0.486,"double":-1.5395},"comps":[{"cards":[2,2],"a":"H","best":-0.486}]}],"5":[{"a":"H","ev":{"stand":-0.2925,"hit":-0.1286,"double":-0.585,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":-0.1286}]},{"a":"H","ev":{"stand":-0.251,"hit":-0.0954,"double":-0.502,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":-0.0954}]},{"a":"H","ev":{"stand":-0.2053,"hit":-0.0581,"double":-0.4107,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":-0.0581}]},{"a":"H","ev":{"stand":-0.1575,"hit":-0.017,"double":-0.3151,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":-0.017}]},{"a":"H","ev":{"stand":-0.1486,"hit":0.0022,"double":-0.2972,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":0.0022}]},{"a":"H","ev":{"stand":-0.4743,"hit":-0.1195,"double":-0.9486,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":-0.1195}]},{"a":"H","ev":{"stand":-0.5109,"hit":-0.1872,"double":-1.0218,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":-0.1872}]},{"a":"H","ev":{"stand":-0.5416,"hit":-0.266,"double":-1.0831,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":-0.266}]},{"a":"H","ev":{"stand":-0.5771,"hit":-0.3661,"double":-1.1542,"surrender":-0.5},"comps":[{"cards":[2,3],"a":"H","best":-0.3661}]},{"a":"H","ev":{"stand":-0.7696,"hit":-0.5044,"double":-1.5392},"comps":[{"cards":[2,3],"a":"H","best":-0.5044}]}],"6":[{"a":"H","ev":{"stand":-0.2922,"hit":-0.142,"double":-0.5628,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.142}]},{"a":"H","ev":{"stand":-0.2487,"hit":-0.1068,"double":-0.4768,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.1068}]},{"a":"H","ev":{"stand":-0.2049,"hit":-0.07,"double":-0.3897,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.07}]},{"a":"H","ev":{"stand":-0.1571,"hit":-0.0282,"double":-0.2957,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.0282}]},{"a":"H","ev":{"stand":-0.1483,"hit":-0.0086,"double":-0.2714,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.0086}]},{"a":"H","ev":{"stand":-0.4739,"hit":-0.1537,"double":-0.8902,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.1537}]},{"a":"H","ev":{"stand":-0.5123,"hit":-0.2197,"double":-1.0047,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.2197}]},{"a":"H","ev":{"stand":-0.5415,"hit":-0.2945,"double":-1.0643,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.2945}]},{"a":"H","ev":{"stand":-0.577,"hit":-0.3904,"double":-1.1367,"surrender":-0.5},"comps":[{"cards":[2,4],"a":"H","best":-0.3904}]},{"a":"H","ev":{"stand":-0.7694,"hit":-0.5238,"double":-1.5196},"comps":[{"cards":[2,4],"a":"H","best":-0.5238}]}],"7":[{"a":"H","ev":{"stand":-0.291,"hit":-0.1093,"double":-0.432,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":-0.1077},{"cards":[3,4],"a":"H","best":-0.1107}]},{"a":"H","ev":{"stand":-0.2483,"hit":-0.0754,"double":-0.3522,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":-0.074},{"cards":[3,4],"a":"H","best":-0.0768}]},{"a":"H","ev":{"stand":-0.2036,"hit":-0.0383,"double":-0.2672,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":-0.0377},{"cards":[3,4],"a":"H","best":-0.0388}]},{"a":"H","ev":{"stand":-0.1567,"hit":0.002,"double":-0.1818,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":0.0026},{"cards":[3,4],"a":"H","best":0.0014}]},{"a":"H","ev":{"stand":-0.1479,"hit":0.0348,"double":-0.1257,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":0.0357},{"cards":[3,4],"a":"H","best":0.034}]},{"a":"H","ev":{"stand":-0.4745,"hit":-0.0689,"double":-0.5836,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":-0.0687},{"cards":[3,4],"a":"H","best":-0.0691}]},{"a":"H","ev":{"stand":-0.5121,"hit":-0.2125,"double":-0.8476,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":-0.2117},{"cards":[3,4],"a":"H","best":-0.2133}]},{"a":"H","ev":{"stand":-0.5422,"hit":-0.2869,"double":-0.9538,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":-0.2854},{"cards":[3,4],"a":"H","best":-0.2885}]},{"a":"H","ev":{"stand":-0.577,"hit":-0.3733,"double":-1.0329,"surrender":-0.5},"comps":[{"cards":[2,5],"a":"H","best":-0.3724},{"cards":[3,4],"a":"H","best":-0.3742}]},{"a":"H","ev":{"stand":-0.7692,"hit":-0.5276,"double":-1.3998},"comps":[{"cards":[2,5],"a":"H","best":-0.5269},{"cards":[3,4],"a":"H","best":-0.5284}]}],"8":[{"a":"H","ev":{"stand":-0.29,"hit":-0.0204,"double":-0.1979,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":-0.0202},{"cards":[3,5],"a":"H","best":-0.0205}]},{"a":"H","ev":{"stand":-0.2483,"hit":0.0105,"double":-0.1268,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":0.0107},{"cards":[3,5],"a":"H","best":0.0103}]},{"a":"H","ev":{"stand":-0.2036,"hit":0.0459,"double":-0.051,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":0.0454},{"cards":[3,5],"a":"H","best":0.0464}]},{"a":"H","ev":{"stand":-0.1569,"hit":0.0809,"double":0.0249,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":0.0801},{"cards":[3,5],"a":"H","best":0.0816}]},{"a":"H","ev":{"stand":-0.1497,"hit":0.1204,"double":0.0985,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":0.1181},{"cards":[3,5],"a":"H","best":0.1227}]},{"a":"H","ev":{"stand":-0.4756,"hit":0.0839,"double":-0.1798,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":0.0839},{"cards":[3,5],"a":"H","best":0.0838}]},{"a":"H","ev":{"stand":-0.5124,"hit":-0.0593,"double":-0.449,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":-0.0592},{"cards":[3,5],"a":"H","best":-0.0595}]},{"a":"H","ev":{"stand":-0.5424,"hit":-0.2106,"double":-0.7149,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":-0.2099},{"cards":[3,5],"a":"H","best":-0.2114}]},{"a":"H","ev":{"stand":-0.5773,"hit":-0.3079,"double":-0.8433,"surrender":-0.5},"comps":[{"cards":[2,6],"a":"H","best":-0.3079},{"cards":[3,5],"a":"H","best":-0.3079}]},{"a":"H","ev":{"stand":-0.7683,"hit":-0.4492,"double":-1.1786},"comps":[{"cards":[2,6],"a":"H","best":-0.4497},{"cards":[3,5],"a":"H","best":-0.4487}]}],"9":[{"a":"H","ev":{"stand":-0.2902,"hit":0.0772,"double":0.07,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"H","best":0.0761},{"cards":[3,6],"a":"H","best":0.0775},{"cards":[4,5],"a":"H","best":0.0779}]},{"a":"D","ev":{"stand":-0.2477,"hit":0.107,"double":0.1326,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"D","best":0.1325},{"cards":[3,6],"a":"D","best":0.1319},{"cards":[4,5],"a":"D","best":0.1333}]},{"a":"D","ev":{"stand":-0.2034,"hit":0.1372,"double":0.1983,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"D","best":0.1962},{"cards":[3,6],"a":"D","best":0.1989},{"cards":[4,5],"a":"D","best":0.1998}]},{"a":"D","ev":{"stand":-0.1582,"hit":0.1685,"double":0.2642,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"D","best":0.2573},{"cards":[3,6],"a":"D","best":0.2661},{"cards":[4,5],"a":"D","best":0.2694}]},{"a":"D","ev":{"stand":-0.1504,"hit":0.2023,"double":0.3294,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"D","best":0.3242},{"cards":[3,6],"a":"D","best":0.3273},{"cards":[4,5],"a":"D","best":0.3368}]},{"a":"H","ev":{"stand":-0.4758,"hit":0.1756,"double":0.1159,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"H","best":0.1743},{"cards":[3,6],"a":"H","best":0.1761},{"cards":[4,5],"a":"H","best":0.1763}]},{"a":"H","ev":{"stand":-0.5132,"hit":0.1003,"double":-0.0212,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"H","best":0.0997},{"cards":[3,6],"a":"H","best":0.1012},{"cards":[4,5],"a":"H","best":0.0999}]},{"a":"H","ev":{"stand":-0.543,"hit":-0.0521,"double":-0.2978,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"H","best":-0.0522},{"cards":[3,6],"a":"H","best":-0.052},{"cards":[4,5],"a":"H","best":-0.0522}]},{"a":"H","ev":{"stand":-0.5763,"hit":-0.2175,"double":-0.5818,"surrender":-0.5},"comps":[{"cards":[2,7],"a":"H","best":-0.2189},{"cards":[3,6],"a":"H","best":-0.2171},{"cards":[4,5],"a":"H","best":-0.2166}]},{"a":"H","ev":{"stand":-0.7681,"hit":-0.3572,"double":-0.9161},"comps":[{"cards":[2,7],"a":"H","best":-0.3577},{"cards":[3,6],"a":"H","best":-0.3575},{"cards":[4,5],"a":"H","best":-0.3564}]}],"10":[{"a":"D","ev":{"stand":-0.2906,"hit":0.1876,"double":0.3699,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"D","best":0.3689},{"cards":[3,7],"a":"D","best":0.3697},{"cards":[4,6],"a":"D","best":0.3709}]},{"a":"D","ev":{"stand":-0.2482,"hit":0.2124,"double":0.4225,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"D","best":0.4209},{"cards":[3,7],"a":"D","best":0.4225},{"cards":[4,6],"a":"D","best":0.4242}]},{"a":"D","ev":{"stand":-0.2051,"hit":0.2378,"double":0.4756,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"D","best":0.4683},{"cards":[3,7],"a":"D","best":0.4784},{"cards":[4,6],"a":"D","best":0.4804}]},{"a":"D","ev":{"stand":-0.1599,"hit":0.2654,"double":0.5307,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"D","best":0.5252},{"cards":[3,7],"a":"D","best":0.5288},{"cards":[4,6],"a":"D","best":0.5381}]},{"a":"D","ev":{"stand":-0.1522,"hit":0.2929,"double":0.5858,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"D","best":0.5821},{"cards":[3,7],"a":"D","best":0.5857},{"cards":[4,6],"a":"D","best":0.5898}]},{"a":"D","ev":{"stand":-0.4765,"hit":0.2602,"double":0.4013,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"D","best":0.3963},{"cards":[3,7],"a":"D","best":0.4014},{"cards":[4,6],"a":"D","best":0.406}]},{"a":"D","ev":{"stand":-0.5139,"hit":0.1999,"double":0.2906,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"D","best":0.2876},{"cards":[3,7],"a":"D","best":0.2926},{"cards":[4,6],"a":"D","best":0.2916}]},{"a":"D","ev":{"stand":-0.5424,"hit":0.1168,"double":0.1474,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"D","best":0.1487},{"cards":[3,7],"a":"D","best":0.1458},{"cards":[4,6],"a":"D","best":0.1478}]},{"a":"H","ev":{"stand":-0.5757,"hit":-0.0534,"double":-0.1606,"surrender":-0.5},"comps":[{"cards":[2,8],"a":"H","best":-0.0535},{"cards":[3,7],"a":"H","best":-0.0536},{"cards":[4,6],"a":"H","best":-0.053}]},{"a":"H","ev":{"stand":-0.768,"hit":-0.2542,"double":-0.6254},"comps":[{"cards":[2,8],"a":"H","best":-0.254},{"cards":[3,7],"a":"H","best":-0.254},{"cards":[4,6],"a":"H","best":-0.2546}]}],"11":[{"a":"D","ev":{"stand":-0.2903,"hit":0.2437,"double":0.4819,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"D","best":0.4789},{"cards":[3,8],"a":"D","best":0.4804},{"cards":[4,7],"a":"D","best":0.4821},{"cards":[5,6],"a":"D","best":0.4861}]},{"a":"D","ev":{"stand":-0.2488,"hit":0.266,"double":0.5297,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"D","best":0.5215},{"cards":[3,8],"a":"D","best":0.5294},{"cards":[4,7],"a":"D","best":0.5326},{"cards":[5,6],"a":"D","best":0.5355}]},{"a":"D","ev":{"stand":-0.2056,"hit":0.2899,"double":0.5797,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"D","best":0.5715},{"cards":[3,8],"a":"D","best":0.5756},{"cards":[4,7],"a":"D","best":0.5846},{"cards":[5,6],"a":"D","best":0.5875}]},{"a":"D","ev":{"stand":-0.1604,"hit":0.3157,"double":0.6314,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"D","best":0.6248},{"cards":[3,8],"a":"D","best":0.6281},{"cards":[4,7],"a":"D","best":0.6318},{"cards":[5,6],"a":"D","best":0.6413}]},{"a":"D","ev":{"stand":-0.1524,"hit":0.3383,"double":0.6767,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"D","best":0.6716},{"cards":[3,8],"a":"D","best":0.6747},{"cards":[4,7],"a":"D","best":0.678},{"cards":[5,6],"a":"D","best":0.6827}]},{"a":"D","ev":{"stand":-0.4772,"hit":0.2925,"double":0.4659,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"D","best":0.4619},{"cards":[3,8],"a":"D","best":0.4645},{"cards":[4,7],"a":"D","best":0.4676},{"cards":[5,6],"a":"D","best":0.4697}]},{"a":"D","ev":{"stand":-0.5134,"hit":0.2288,"double":0.3493,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"D","best":0.347},{"cards":[3,8],"a":"D","best":0.3474},{"cards":[4,7],"a":"D","best":0.3491},{"cards":[5,6],"a":"D","best":0.3535}]},{"a":"D","ev":{"stand":-0.5422,"hit":0.1564,"double":0.2271,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"D","best":0.2255},{"cards":[3,8],"a":"D","best":0.2257},{"cards":[4,7],"a":"D","best":0.2272},{"cards":[5,6],"a":"D","best":0.23}]},{"a":"H","ev":{"stand":-0.5756,"hit":0.031,"double":0.0078,"surrender":-0.5},"comps":[{"cards":[2,9],"a":"H","best":0.0303},{"cards":[3,8],"a":"H","best":0.031},{"cards":[4,7],"a":"H","best":0.0311},{"cards":[5,6],"a":"H","best":0.0317}]},{"a":"H","ev":{"stand":-0.7682,"hit":-0.2091,"double":-0.5348},"comps":[{"cards":[2,9],"a":"H","best":-0.2092},{"cards":[3,8],"a":"H","best":-0.2092},{"cards":[4,7],"a":"H","best":-0.2091},{"cards":[5,6],"a":"H","best":-0.2089}]}],"12":[{"a":"H","ev":{"stand":-0.2934,"hit":-0.253,"double":-0.5059,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"H","best":-0.2519},{"cards":[3,9],"a":"H","best":-0.2555},{"cards":[4,8],"a":"H","best":-0.2544},{"cards":[5,7],"a":"H","best":-0.2533}]},{"a":"H","ev":{"stand":-0.2521,"hit":-0.2324,"double":-0.4649,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"H","best":-0.2314},{"cards":[3,9],"a":"H","best":-0.237},{"cards":[4,8],"a":"H","best":-0.233},{"cards":[5,7],"a":"H","best":-0.2319}]},{"a":"S","ev":{"stand":-0.2088,"hit":-0.2115,"double":-0.4231,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"H","best":-0.2104},{"cards":[3,9],"a":"S","best":-0.208},{"cards":[4,8],"a":"S","best":-0.2068},{"cards":[5,7],"a":"S","best":-0.2025}]},{"a":"S","ev":{"stand":-0.1627,"hit":-0.1902,"double":-0.3804,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"S","best":-0.1636},{"cards":[3,9],"a":"S","best":-0.1625},{"cards":[4,8],"a":"S","best":-0.1614},{"cards":[5,7],"a":"S","best":-0.1602}]},{"a":"S","ev":{"stand":-0.1538,"hit":-0.1705,"double":-0.341,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"S","best":-0.1547},{"cards":[3,9],"a":"S","best":-0.1535},{"cards":[4,8],"a":"S","best":-0.1526},{"cards":[5,7],"a":"S","best":-0.1516}]},{"a":"H","ev":{"stand":-0.476,"hit":-0.2152,"double":-0.5101,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"H","best":-0.2126},{"cards":[3,9],"a":"H","best":-0.2182},{"cards":[4,8],"a":"H","best":-0.2179},{"cards":[5,7],"a":"H","best":-0.2196}]},{"a":"H","ev":{"stand":-0.5125,"hit":-0.275,"double":-0.623,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"H","best":-0.272},{"cards":[3,9],"a":"H","best":-0.2786},{"cards":[4,8],"a":"H","best":-0.2791},{"cards":[5,7],"a":"H","best":-0.2792}]},{"a":"H","ev":{"stand":-0.5413,"hit":-0.3439,"double":-0.7447,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"H","best":-0.3407},{"cards":[3,9],"a":"H","best":-0.3482},{"cards":[4,8],"a":"H","best":-0.3487},{"cards":[5,7],"a":"H","best":-0.3478}]},{"a":"H","ev":{"stand":-0.5755,"hit":-0.4267,"double":-0.8862,"surrender":-0.5},"comps":[{"cards":[2,10],"a":"H","best":-0.4242},{"cards":[3,9],"a":"H","best":-0.4303},{"cards":[4,8],"a":"H","best":-0.4299},{"cards":[5,7],"a":"H","best":-0.4297}]},{"a":"H","ev":{"stand":-0.7694,"hit":-0.5521,"double":-1.1905},"comps":[{"cards":[2,10],"a":"H","best":-0.55},{"cards":[3,9],"a":"H","best":-0.5549},{"cards":[4,8],"a":"H","best":-0.555},{"cards":[5,7],"a":"H","best":-0.5551}]}],"13":[{"a":"S","ev":{"stand":-0.2931,"hit":-0.3082,"double":-0.6163,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"S","best":-0.2958},{"cards":[4,9],"a":"S","best":-0.2916},{"cards":[5,8],"a":"S","best":-0.2886},{"cards":[6,7],"a":"S","best":-0.2886}]},{"a":"S","ev":{"stand":-0.2516,"hit":-0.2908,"double":-0.5816,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"S","best":-0.2542},{"cards":[4,9],"a":"S","best":-0.2511},{"cards":[5,8],"a":"S","best":-0.2468},{"cards":[6,7],"a":"S","best":-0.2466}]},{"a":"S","ev":{"stand":-0.2075,"hit":-0.2727,"double":-0.5455,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"S","best":-0.2088},{"cards":[4,9],"a":"S","best":-0.2076},{"cards":[5,8],"a":"S","best":-0.2064},{"cards":[6,7],"a":"S","best":-0.203}]},{"a":"S","ev":{"stand":-0.1624,"hit":-0.2554,"double":-0.5107,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"S","best":-0.1632},{"cards":[4,9],"a":"S","best":-0.1621},{"cards":[5,8],"a":"S","best":-0.1611},{"cards":[6,7],"a":"S","best":-0.1609}]},{"a":"S","ev":{"stand":-0.154,"hit":-0.2365,"double":-0.4731,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"S","best":-0.1543},{"cards":[4,9],"a":"S","best":-0.1532},{"cards":[5,8],"a":"S","best":-0.1522},{"cards":[6,7],"a":"S","best":-0.1555}]},{"a":"H","ev":{"stand":-0.4761,"hit":-0.2719,"double":-0.5925,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"H","best":-0.2693},{"cards":[4,9],"a":"H","best":-0.2698},{"cards":[5,8],"a":"H","best":-0.2781},{"cards":[6,7],"a":"H","best":-0.2784}]},{"a":"H","ev":{"stand":-0.5126,"hit":-0.3274,"double":-0.6995,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"H","best":-0.3244},{"cards":[4,9],"a":"H","best":-0.326},{"cards":[5,8],"a":"H","best":-0.3335},{"cards":[6,7],"a":"H","best":-0.3347}]},{"a":"H","ev":{"stand":-0.5422,"hit":-0.3854,"double":-0.804,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"H","best":-0.3827},{"cards":[4,9],"a":"H","best":-0.3837},{"cards":[5,8],"a":"H","best":-0.3913},{"cards":[6,7],"a":"H","best":-0.3921}]},{"a":"H","ev":{"stand":-0.5756,"hit":-0.4677,"double":-0.9516,"surrender":-0.5},"comps":[{"cards":[3,10],"a":"H","best":-0.4653},{"cards":[4,9],"a":"H","best":-0.466},{"cards":[5,8],"a":"H","best":-0.473},{"cards":[6,7],"a":"H","best":-0.4736}]},{"a":"H","ev":{"stand":-0.769,"hit":-0.584,"double":-1.2259},"comps":[{"cards":[3,10],"a":"H","best":-0.5819},{"cards":[4,9],"a":"H","best":-0.5827},{"cards":[5,8],"a":"H","best":-0.5881},{"cards":[6,7],"a":"H","best":-0.5895}]}],"14":[{"a":"S","ev":{"stand":-0.2934,"hit":-0.3628,"double":-0.7255,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"S","best":-0.2955},{"cards":[5,9],"a":"S","best":-0.2892},{"cards":[6,8],"a":"S","best":-0.289}]},{"a":"S","ev":{"stand":-0.2509,"hit":-0.3495,"double":-0.6991,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"S","best":-0.2519},{"cards":[5,9],"a":"S","best":-0.2507},{"cards":[6,8],"a":"S","best":-0.2473}]},{"a":"S","ev":{"stand":-0.2079,"hit":-0.3352,"double":-0.6704,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"S","best":-0.2084},{"cards":[5,9],"a":"S","best":-0.2072},{"cards":[6,8],"a":"S","best":-0.2069}]},{"a":"S","ev":{"stand":-0.1625,"hit":-0.3204,"double":-0.6409,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"S","best":-0.1628},{"cards":[5,9],"a":"S","best":-0.1618},{"cards":[6,8],"a":"S","best":-0.1618}]},{"a":"S","ev":{"stand":-0.1541,"hit":-0.3023,"double":-0.6046,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"S","best":-0.154},{"cards":[5,9],"a":"S","best":-0.1529},{"cards":[6,8],"a":"S","best":-0.1561}]},{"a":"H","ev":{"stand":-0.4759,"hit":-0.3249,"double":-0.6754,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"H","best":-0.3246},{"cards":[5,9],"a":"H","best":-0.3254},{"cards":[6,8],"a":"H","best":-0.3255}]},{"a":"H","ev":{"stand":-0.5131,"hit":-0.3702,"double":-0.7635,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"H","best":-0.3696},{"cards":[5,9],"a":"H","best":-0.3716},{"cards":[6,8],"a":"H","best":-0.3715}]},{"a":"H","ev":{"stand":-0.5418,"hit":-0.4291,"double":-0.8739,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"H","best":-0.4282},{"cards":[5,9],"a":"H","best":-0.4302},{"cards":[6,8],"a":"H","best":-0.4318}]},{"a":"Rh","ev":{"stand":-0.5757,"hit":-0.5054,"double":-1.0162,"surrender":-0.5},"comps":[{"cards":[4,10],"a":"Rh","best":-0.5},{"cards":[5,9],"a":"Rh","best":-0.5},{"cards":[6,8],"a":"Rh","best":-0.5}]},{"a":"H","ev":{"stand":-0.7691,"hit":-0.6134,"double":-1.2613},"comps":[{"cards":[4,10],"a":"H","best":-0.6127},{"cards":[5,9],"a":"H","best":-0.614},{"cards":[6,8],"a":"H","best":-0.6155}]}],"15":[{"a":"S","ev":{"stand":-0.292,"hit":-0.4184,"double":-0.8367,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"S","best":-0.2931},{"cards":[6,9],"a":"S","best":-0.2897},{"cards":[7,8],"a":"S","best":-0.2896}]},{"a":"S","ev":{"stand":-0.2508,"hit":-0.4087,"double":-0.8174,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"S","best":-0.2515},{"cards":[6,9],"a":"S","best":-0.2512},{"cards":[7,8],"a":"S","best":-0.2477}]},{"a":"S","ev":{"stand":-0.2079,"hit":-0.3983,"double":-0.7965,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"S","best":-0.208},{"cards":[6,9],"a":"S","best":-0.2077},{"cards":[7,8],"a":"S","best":-0.2076}]},{"a":"S","ev":{"stand":-0.163,"hit":-0.3871,"double":-0.7742,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"S","best":-0.1624},{"cards":[6,9],"a":"S","best":-0.1625},{"cards":[7,8],"a":"S","best":-0.1657}]},{"a":"S","ev":{"stand":-0.1547,"hit":-0.3689,"double":-0.7378,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"S","best":-0.1537},{"cards":[6,9],"a":"S","best":-0.1567},{"cards":[7,8],"a":"S","best":-0.1569}]},{"a":"H","ev":{"stand":-0.477,"hit":-0.3679,"double":-0.7453,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"H","best":-0.3689},{"cards":[6,9],"a":"H","best":-0.3687},{"cards":[7,8],"a":"H","best":-0.3625}]},{"a":"H","ev":{"stand":-0.5133,"hit":-0.416,"double":-0.8405,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"H","best":-0.4169},{"cards":[6,9],"a":"H","best":-0.4174},{"cards":[7,8],"a":"H","best":-0.4109}]},{"a":"H","ev":{"stand":-0.5419,"hit":-0.4714,"double":-0.9478,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"H","best":-0.4722},{"cards":[6,9],"a":"H","best":-0.4728},{"cards":[7,8],"a":"H","best":-0.467}]},{"a":"Rh","ev":{"stand":-0.5752,"hit":-0.542,"double":-1.0842,"surrender":-0.5},"comps":[{"cards":[5,10],"a":"Rh","best":-0.5},{"cards":[6,9],"a":"Rh","best":-0.5},{"cards":[7,8],"a":"Rh","best":-0.5}]},{"a":"H","ev":{"stand":-0.7688,"hit":-0.6416,"double":-1.2983},"comps":[{"cards":[5,10],"a":"H","best":-0.6419},{"cards":[6,9],"a":"H","best":-0.6433},{"cards":[7,8],"a":"H","best":-0.6389}]}],"16":[{"a":"S","ev":{"stand":-0.2929,"hit":-0.4698,"double":-0.9396,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"S","best":-0.2936},{"cards":[7,9],"a":"S","best":-0.2902}]},{"a":"S","ev":{"stand":-0.2519,"hit":-0.4633,"double":-0.9266,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"S","best":-0.252},{"cards":[7,9],"a":"S","best":-0.2517}]},{"a":"S","ev":{"stand":-0.2084,"hit":-0.456,"double":-0.912,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"S","best":-0.2084},{"cards":[7,9],"a":"S","best":-0.2084}]},{"a":"S","ev":{"stand":-0.1638,"hit":-0.449,"double":-0.8981,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"S","best":-0.1631},{"cards":[7,9],"a":"S","best":-0.1664}]},{"a":"S","ev":{"stand":-0.1575,"hit":-0.4254,"double":-0.8509,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"S","best":-0.1575},{"cards":[7,9],"a":"S","best":-0.1575}]},{"a":"H","ev":{"stand":-0.4773,"hit":-0.4086,"double":-0.8172,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"H","best":-0.4086},{"cards":[7,9],"a":"H","best":-0.4084}]},{"a":"H","ev":{"stand":-0.5133,"hit":-0.4532,"double":-0.9065,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"H","best":-0.4531},{"cards":[7,9],"a":"H","best":-0.4536}]},{"a":"Rh","ev":{"stand":-0.5426,"hit":-0.5046,"double":-1.0093,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"Rh","best":-0.5},{"cards":[7,9],"a":"Rh","best":-0.5}]},{"a":"Rh","ev":{"stand":-0.5758,"hit":-0.571,"double":-1.1419,"surrender":-0.5},"comps":[{"cards":[6,10],"a":"Rh","best":-0.5},{"cards":[7,9],"a":"Rh","best":-0.5}]},{"a":"H","ev":{"stand":-0.7679,"hit":-0.6647,"double":-1.3294},"comps":[{"cards":[6,10],"a":"H","best":-0.6647},{"cards":[7,9],"a":"H","best":-0.6647}]}],"17":[{"a":"S","ev":{"stand":-0.1531,"hit":-0.5363,"double":-1.0725,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":-0.1538},{"cards":[8,9],"a":"S","best":-0.1504}]},{"a":"S","ev":{"stand":-0.1175,"hit":-0.5324,"double":-1.0649,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":-0.1175},{"cards":[8,9],"a":"S","best":-0.1174}]},{"a":"S","ev":{"stand":-0.0786,"hit":-0.5285,"double":-1.057,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":-0.078},{"cards":[8,9],"a":"S","best":-0.0811}]},{"a":"S","ev":{"stand":-0.0447,"hit":-0.5182,"double":-1.0364,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":-0.0446},{"cards":[8,9],"a":"S","best":-0.0448}]},{"a":"S","ev":{"stand":0.0083,"hit":-0.5047,"double":-1.0093,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":0.0083},{"cards":[8,9],"a":"S","best":0.0083}]},{"a":"S","ev":{"stand":-0.1091,"hit":-0.4783,"double":-0.9566,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":-0.1089},{"cards":[8,9],"a":"S","best":-0.1097}]},{"a":"S","ev":{"stand":-0.3849,"hit":-0.501,"double":-1.002,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":-0.3842},{"cards":[8,9],"a":"S","best":-0.3875}]},{"a":"S","ev":{"stand":-0.422,"hit":-0.5496,"double":-1.0991,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":-0.4222},{"cards":[8,9],"a":"S","best":-0.4213}]},{"a":"S","ev":{"stand":-0.463,"hit":-0.6127,"double":-1.2254,"surrender":-0.5},"comps":[{"cards":[7,10],"a":"S","best":-0.4636},{"cards":[8,9],"a":"S","best":-0.4605}]},{"a":"S","ev":{"stand":-0.6373,"hit":-0.6933,"double":-1.3865},"comps":[{"cards":[7,10],"a":"S","best":-0.6373},{"cards":[8,9],"a":"S","best":-0.6373}]}],"18":[{"a":"S","ev":{"stand":0.1212,"hit":-0.6241,"double":-1.2481,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":0.1212}]},{"a":"S","ev":{"stand":0.1479,"hit":-0.6222,"double":-1.2444,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":0.1479}]},{"a":"S","ev":{"stand":0.1741,"hit":-0.6142,"double":-1.2284,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":0.1741}]},{"a":"S","ev":{"stand":0.2001,"hit":-0.6114,"double":-1.2227,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":0.2001}]},{"a":"S","ev":{"stand":0.281,"hit":-0.6041,"double":-1.2081,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":0.281}]},{"a":"S","ev":{"stand":0.3977,"hit":-0.5873,"double":-1.1747,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":0.3977}]},{"a":"S","ev":{"stand":0.1041,"hit":-0.587,"double":-1.174,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":0.1041}]},{"a":"S","ev":{"stand":-0.1852,"hit":-0.6128,"double":-1.2257,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":-0.1852}]},{"a":"S","ev":{"stand":-0.2387,"hit":-0.6714,"double":-1.3428,"surrender":-0.5},"comps":[{"cards":[8,10],"a":"S","best":-0.2387}]},{"a":"S","ev":{"stand":-0.3748,"hit":-0.7421,"double":-1.4841},"comps":[{"cards":[8,10],"a":"S","best":-0.3748}]}],"19":[{"a":"S","ev":{"stand":0.3862,"hit":-0.7324,"double":-1.4647,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":0.3862}]},{"a":"S","ev":{"stand":0.4012,"hit":-0.7256,"double":-1.4511,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":0.4012}]},{"a":"S","ev":{"stand":0.42,"hit":-0.7245,"double":-1.449,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":0.42}]},{"a":"S","ev":{"stand":0.4408,"hit":-0.7233,"double":-1.4465,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":0.4408}]},{"a":"S","ev":{"stand":0.4941,"hit":-0.7201,"double":-1.4401,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":0.4941}]},{"a":"S","ev":{"stand":0.615,"hit":-0.7128,"double":-1.4255,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":0.615}]},{"a":"S","ev":{"stand":0.5911,"hit":-0.7111,"double":-1.4221,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":0.5911}]},{"a":"S","ev":{"stand":0.2839,"hit":-0.7128,"double":-1.4255,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":0.2839}]},{"a":"S","ev":{"stand":-0.0136,"hit":-0.7476,"double":-1.4953,"surrender":-0.5},"comps":[{"cards":[9,10],"a":"S","best":-0.0136}]},{"a":"S","ev":{"stand":-0.1118,"hit":-0.8113,"double":-1.6227},"comps":[{"cards":[9,10],"a":"S","best":-0.1118}]}],"20":[{"a":"S","ev":{"stand":0.6379,"hit":-0.8539,"double":-1.7077,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.6379}]},{"a":"S","ev":{"stand":0.648,"hit":-0.8536,"double":-1.7072,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.648}]},{"a":"S","ev":{"stand":0.6585,"hit":-0.8534,"double":-1.7067,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.6585}]},{"a":"S","ev":{"stand":0.6709,"hit":-0.8531,"double":-1.7061,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.6709}]},{"a":"S","ev":{"stand":0.7028,"hit":-0.8523,"double":-1.7045,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.7028}]},{"a":"S","ev":{"stand":0.772,"hit":-0.8504,"double":-1.7009,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.772}]},{"a":"S","ev":{"stand":0.7904,"hit":-0.8501,"double":-1.7002,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.7904}]},{"a":"S","ev":{"stand":0.7561,"hit":-0.8494,"double":-1.6989,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.7561}]},{"a":"S","ev":{"stand":0.438,"hit":-0.859,"double":-1.718,"surrender":-0.5},"comps":[{"cards":[10,10],"a":"S","best":0.438}]},{"a":"S","ev":{"stand":0.1512,"hit":-0.9006,"double":-1.8012},"comps":[{"cards":[10,10],"a":"S","best":0.1512}]}]},"soft":{"2":[{"a":"H","ev":{"stand":-0.2912,"hit":0.0455,"double":-0.0666,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.25,"hit":0.0737,"double":-0.0008,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.2068,"hit":0.1037,"double":0.068,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.1594,"hit":0.1373,"double":0.1399,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.1473,"hit":0.1627,"double":0.1879,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.4732,"hit":0.1202,"double":-0.1795,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.51,"hit":0.0518,"double":-0.3141,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5391,"hit":-0.0341,"double":-0.4432,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5744,"hit":-0.1691,"double":-0.6196,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.7699,"hit":-0.3516,"double":-1.0484}}],"3":[{"a":"H","ev":{"stand":-0.2912,"hit":0.0215,"double":-0.0672,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.2498,"hit":0.0499,"double":-0.0034,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.2044,"hit":0.0817,"double":0.0669,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.159,"hit":0.1157,"double":0.1384,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.147,"hit":0.1402,"double":0.1864,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.4729,"hit":0.0765,"double":-0.1822,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5097,"hit":0.0165,"double":-0.3051,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5405,"hit":-0.0727,"double":-0.4464,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5743,"hit":-0.2013,"double":-0.6197,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.7698,"hit":-0.3766,"double":-1.0486}}],"4":[{"a":"H","ev":{"stand":-0.2909,"hit":-0.0019,"double":-0.0709,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.2474,"hit":0.0281,"double":-0.0053,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.204,"hit":0.0594,"double":0.0624,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.1586,"hit":0.0944,"double":0.1337,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.1466,"hit":0.1184,"double":0.1829,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.4725,"hit":0.0364,"double":-0.1772,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5111,"hit":-0.0284,"double":-0.3143,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5405,"hit":-0.1124,"double":-0.451,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5743,"hit":-0.2348,"double":-0.622,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.7696,"hit":-0.4032,"double":-1.0513}}],"5":[{"a":"H","ev":{"stand":-0.2885,"hit":-0.0228,"double":-0.0734,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.247,"hit":0.0071,"double":-0.0091,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.2036,"hit":0.0394,"double":0.0586,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.1582,"hit":0.0746,"double":0.129,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.1463,"hit":0.1015,"double":0.1856,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.474,"hit":-0.0079,"double":-0.1843,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.511,"hit":-0.0694,"double":-0.3172,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5404,"hit":-0.1514,"double":-0.4558,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.5741,"hit":-0.2689,"double":-0.628,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.7694,"hit":-0.4294,"double":-1.0551}}],"6":[{"a":"H","ev":{"stand":-0.1496,"hit":0.0007,"double":-0.004,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.1134,"hit":0.0301,"double":0.058,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.0737,"hit":0.062,"double":0.1241,"surrender":-0.5}},{"a":"D","ev":{"stand":-0.0373,"hit":0.0989,"double":0.1978,"surrender":-0.5}},{"a":"D","ev":{"stand":0.012,"hit":0.1293,"double":0.2585,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.1038,"hit":0.0547,"double":-0.0089,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.3826,"hit":-0.0717,"double":-0.2513,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.4206,"hit":-0.1473,"double":-0.3922,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.4628,"hit":-0.2555,"double":-0.5696,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.6407,"hit":-0.4368,"double":-0.9908}}],"7":[{"a":"S","ev":{"stand":0.124,"hit":0.0633,"double":0.121,"surrender":-0.5}},{"a":"Ds","ev":{"stand":0.1511,"hit":0.0907,"double":0.1793,"surrender":-0.5}},{"a":"Ds","ev":{"stand":0.1802,"hit":0.1244,"double":0.2488,"surrender":-0.5}},{"a":"Ds","ev":{"stand":0.2031,"hit":0.152,"double":0.3041,"surrender":-0.5}},{"a":"Ds","ev":{"stand":0.2805,"hit":0.1914,"double":0.3828,"surrender":-0.5}},{"a":"S","ev":{"stand":0.4019,"hit":0.1719,"double":0.2237,"surrender":-0.5}},{"a":"S","ev":{"stand":0.1081,"hit":0.041,"double":-0.0282,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.1826,"hit":-0.0985,"double":-0.2848,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.2406,"hit":-0.2067,"double":-0.4661,"surrender":-0.5}},{"a":"H","ev":{"stand":-0.3798,"hit":-0.3764,"double":-0.8711}}],"8":[{"a":"S","ev":{"stand":0.3886,"hit":0.1233,"double":0.241,"surrender":-0.5}},{"a":"S","ev":{"stand":0.4066,"hit":0.1529,"double":0.3036,"surrender":-0.5}},{"a":"S","ev":{"stand":0.4222,"hit":0.1774,"double":0.3548,"surrender":-0.5}},{"a":"S","ev":{"stand":0.4429,"hit":0.2069,"double":0.4137,"surrender":-0.5}},{"a":"S","ev":{"stand":0.4939,"hit":0.2401,"double":0.4803,"surrender":-0.5}},{"a":"S","ev":{"stand":0.6157,"hit":0.221,"double":0.3206,"surrender":-0.5}},{"a":"S","ev":{"stand":0.5959,"hit":0.1529,"double":0.194,"surrender":-0.5}},{"a":"S","ev":{"stand":0.2876,"hit":0.0074,"double":-0.0712,"surrender":-0.5}},{"a":"S","ev":{"stand":-0.0158,"hit":-0.1555,"double":-0.3651,"surrender":-0.5}},{"a":"S","ev":{"stand":-0.1179,"hit":-0.3159,"double":-0.7518}}],"9":[{"a":"S","ev":{"stand":0.6424,"hit":0.1836,"double":0.3619,"surrender":-0.5}},{"a":"S","ev":{"stand":0.6494,"hit":0.2047,"double":0.4069,"surrender":-0.5}},{"a":"S","ev":{"stand":0.6598,"hit":0.2302,"double":0.4605,"surrender":-0.5}},{"a":"S","ev":{"stand":0.6722,"hit":0.2581,"double":0.5162,"surrender":-0.5}},{"a":"S","ev":{"stand":0.7026,"hit":0.2867,"double":0.5734,"surrender":-0.5}},{"a":"S","ev":{"stand":0.7733,"hit":0.2546,"double":0.3859,"surrender":-0.5}},{"a":"S","ev":{"stand":0.7907,"hit":0.1937,"double":0.2775,"surrender":-0.5}},{"a":"S","ev":{"stand":0.7595,"hit":0.1132,"double":0.1385,"surrender":-0.5}},{"a":"S","ev":{"stand":0.4388,"hit":-0.0534,"double":-0.1631,"surrender":-0.5}},{"a":"S","ev":{"stand":0.144,"hit":-0.2561,"double":-0.6341}}]},"pairs":{"1":[{"a":"P","na":"H","ev":{"stand":-0.2899,"hit":0.0838,"double":-0.063,"split":0.4859,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.2488,"hit":0.106,"double":0.003,"split":0.5332,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.2058,"hit":0.129,"double":0.0712,"split":0.5827,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.1608,"hit":0.1607,"double":0.1408,"split":0.6339,"surrender":-0.5}},{"a":"P","na":"D","ev":{"stand":-0.1457,"hit":0.188,"double":0.1907,"split":0.6824,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.4717,"hit":0.1643,"double":-0.1764,"split":0.4756,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.5088,"hit":0.0946,"double":-0.3115,"split":0.3597,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.5381,"hit":-0.0003,"double":-0.4509,"split":0.2378,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.5716,"hit":-0.1328,"double":-0.613,"split":0.0266,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.7701,"hit":-0.326,"double":-1.0489,"split":-0.5337}}],"2":[{"a":"P","na":"H","ev":{"stand":-0.2925,"hit":-0.1147,"double":-0.5851,"split":-0.0778,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.2513,"hit":-0.0821,"double":-0.5026,"split":-0.0061,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.2077,"hit":-0.0468,"double":-0.4154,"split":0.0696,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.158,"hit":-0.005,"double":-0.3159,"split":0.1736,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.149,"hit":0.0146,"double":-0.298,"split":0.2396,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.4746,"hit":-0.0888,"double":-0.9492,"split":0.0083,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5112,"hit":-0.1568,"double":-1.0225,"split":-0.1743,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5401,"hit":-0.2379,"double":-1.0803,"split":-0.3643,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5772,"hit":-0.3425,"double":-1.1544,"split":-0.5981,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.7698,"hit":-0.486,"double":-1.5395,"split":-0.9041}}],"3":[{"a":"P","na":"H","ev":{"stand":-0.2924,"hit":-0.1422,"double":-0.5633,"split":-0.1335,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.2507,"hit":-0.1083,"double":-0.4807,"split":-0.0494,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.203,"hit":-0.0688,"double":-0.3863,"split":0.0489,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.1571,"hit":-0.0282,"double":-0.2954,"split":0.1532,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.1482,"hit":-0.0086,"double":-0.2713,"split":0.2155,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.474,"hit":-0.1538,"double":-0.8902,"split":-0.0515,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5106,"hit":-0.2192,"double":-1.0011,"split":-0.2297,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.543,"hit":-0.2953,"double":-1.0674,"split":-0.4128,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.577,"hit":-0.3901,"double":-1.1367,"split":-0.6413,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.7695,"hit":-0.5238,"double":-1.5197,"split":-0.9379}}],"4":[{"a":"H","na":"H","ev":{"stand":-0.2918,"hit":-0.0198,"double":-0.2002,"split":-0.1638,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.246,"hit":0.0116,"double":-0.1267,"split":-0.0795,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.2021,"hit":0.048,"double":-0.0493,"split":0.0087,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.1563,"hit":0.0836,"double":0.0277,"split":0.1101,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.1476,"hit":0.1244,"double":0.1036,"split":0.1663,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.4733,"hit":0.0866,"double":-0.1751,"split":-0.1331,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5134,"hit":-0.0591,"double":-0.451,"split":-0.2884,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5429,"hit":-0.2098,"double":-0.7157,"split":-0.4667,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5769,"hit":-0.3064,"double":-0.8426,"split":-0.6875,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.769,"hit":-0.4477,"double":-1.1782,"split":-0.9747}}],"5":[{"a":"D","na":"D","ev":{"stand":-0.2871,"hit":0.1892,"double":0.3732,"split":-0.1879,"surrender":-0.5}},{"a":"D","na":"D","ev":{"stand":-0.2451,"hit":0.214,"double":0.4257,"split":-0.107,"surrender":-0.5}},{"a":"D","na":"D","ev":{"stand":-0.2013,"hit":0.2406,"double":0.4811,"split":-0.0165,"surrender":-0.5}},{"a":"D","na":"D","ev":{"stand":-0.1556,"hit":0.2702,"double":0.5405,"split":0.0819,"surrender":-0.5}},{"a":"D","na":"D","ev":{"stand":-0.1469,"hit":0.2994,"double":0.5989,"split":0.1364,"surrender":-0.5}},{"a":"D","na":"D","ev":{"stand":-0.4762,"hit":0.2604,"double":0.4047,"split":-0.1988,"surrender":-0.5}},{"a":"D","na":"D","ev":{"stand":-0.5133,"hit":0.1995,"double":0.293,"split":-0.3535,"surrender":-0.5}},{"a":"D","na":"D","ev":{"stand":-0.5427,"hit":0.1167,"double":0.1492,"split":-0.5277,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5767,"hit":-0.0526,"double":-0.1591,"split":-0.7395,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.7686,"hit":-0.2536,"double":-0.623,"split":-1.0148}}],"6":[{"a":"P","na":"H","ev":{"stand":-0.2881,"hit":-0.2533,"double":-0.5066,"split":-0.1979,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.2461,"hit":-0.232,"double":-0.4639,"split":-0.1001,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.2023,"hit":-0.2101,"double":-0.4201,"split":0.0033,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.157,"hit":-0.1886,"double":-0.3771,"split":0.1111,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.1547,"hit":-0.1738,"double":-0.3477,"split":0.1586,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.4777,"hit":-0.2206,"double":-0.5201,"split":-0.2489,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5146,"hit":-0.2793,"double":-0.6305,"split":-0.3976,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5439,"hit":-0.3472,"double":-0.7499,"split":-0.5666,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5783,"hit":-0.43,"double":-0.8916,"split":-0.7751,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.7652,"hit":-0.5564,"double":-1.1942,"split":-1.0444}}],"7":[{"a":"P","na":"S","ev":{"stand":-0.2891,"hit":-0.3693,"double":-0.7385,"split":-0.1203,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.2471,"hit":-0.3552,"double":-0.7103,"split":-0.0291,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.2037,"hit":-0.3405,"double":-0.681,"split":0.0712,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.1649,"hit":-0.3292,"double":-0.6584,"split":0.161,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.1562,"hit":-0.311,"double":-0.622,"split":0.2497,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.4791,"hit":-0.3318,"double":-0.6919,"split":-0.048,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5158,"hit":-0.3777,"double":-0.7809,"split":-0.3893,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.5455,"hit":-0.4379,"double":-0.894,"split":-0.5548,"surrender":-0.5}},{"a":"Rh","na":"Rh","ev":{"stand":-0.5717,"hit":-0.5149,"double":-1.0349,"split":-0.7432,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.7666,"hit":-0.62,"double":-1.2744,"split":-1.0482}}],"8":[{"a":"P","na":"S","ev":{"stand":-0.29,"hit":-0.4685,"double":-0.9369,"split":0.0818,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.2484,"hit":-0.4617,"double":-0.9233,"split":0.1544,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.2115,"hit":-0.4569,"double":-0.9138,"split":0.2246,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.1665,"hit":-0.4499,"double":-0.8999,"split":0.3051,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.1575,"hit":-0.4255,"double":-0.851,"split":0.4071,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.4802,"hit":-0.4084,"double":-0.8168,"split":0.3201,"surrender":-0.5}},{"a":"P","na":"H","ev":{"stand":-0.5175,"hit":-0.4534,"double":-0.9068,"split":-0.0282,"surrender":-0.5}},{"a":"P","na":"Rh","ev":{"stand":-0.5389,"hit":-0.5057,"double":-1.0114,"split":-0.3888,"surrender":-0.5}},{"a":"Rh","na":"Rh","ev":{"stand":-0.5728,"hit":-0.5714,"double":-1.1429,"split":-0.6096,"surrender":-0.5}},{"a":"H","na":"H","ev":{"stand":-0.7679,"hit":-0.6647,"double":-1.3294,"split":-0.8871}}],"9":[{"a":"P","na":"S","ev":{"stand":0.1242,"hit":-0.6233,"double":-1.2465,"split":0.1978,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":0.1448,"hit":-0.6228,"double":-1.2456,"split":0.2536,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":0.1741,"hit":-0.6142,"double":-1.2284,"split":0.3216,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":0.2,"hit":-0.6114,"double":-1.2227,"split":0.395,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":0.2808,"hit":-0.6041,"double":-1.2082,"split":0.4651,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.3996,"hit":-0.5872,"double":-1.1744,"split":0.369,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":0.0993,"hit":-0.5871,"double":-1.1743,"split":0.2304,"surrender":-0.5}},{"a":"P","na":"S","ev":{"stand":-0.1852,"hit":-0.6131,"double":-1.2261,"split":-0.0811,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":-0.2355,"hit":-0.6716,"double":-1.3433,"split":-0.4312,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":-0.3748,"hit":-0.7423,"double":-1.4845,"split":-0.7054}}],"10":[{"a":"S","na":"S","ev":{"stand":0.6379,"hit":-0.8539,"double":-1.7077,"split":0.3564,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.648,"hit":-0.8536,"double":-1.7072,"split":0.4045,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.6585,"hit":-0.8534,"double":-1.7067,"split":0.4548,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.6709,"hit":-0.8531,"double":-1.7061,"split":0.51,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.7028,"hit":-0.8523,"double":-1.7045,"split":0.5668,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.772,"hit":-0.8504,"double":-1.7009,"split":0.5087,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.7904,"hit":-0.8501,"double":-1.7002,"split":0.3889,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.7561,"hit":-0.8494,"double":-1.6989,"split":0.2248,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.438,"hit":-0.859,"double":-1.718,"split":-0.1073,"surrender":-0.5}},{"a":"S","na":"S","ev":{"stand":0.1512,"hit":-0.9006,"double":-1.8012,"split":-0.5022}}]},"diffs":[{"section":"hard","row":"11","up":"10","euro":"H","us":"D","evs":{"stand":-0.5756,"hit":0.031,"double":0.0078,"surrender":-0.5}},{"section":"hard","row":"14","up":"10","euro":"Rh","us":"H","evs":{"stand":-0.5757,"hit":-0.5054,"double":-1.0162,"surrender":-0.5}},{"section":"hard","row":"16","up":"A","euro":"H","us":"Rh","evs":{"stand":-0.7679,"hit":-0.6647,"double":-1.3294}},{"section":"pairs","row":"1","up":"A","euro":"H","us":"P","evs":{"stand":-0.7701,"hit":-0.326,"double":-1.0489,"split":-0.5337}},{"section":"pairs","row":"7","up":"10","euro":"Rh","us":"H","evs":{"stand":-0.5717,"hit":-0.5149,"double":-1.0349,"split":-0.7432,"surrender":-0.5}},{"section":"pairs","row":"8","up":"10","euro":"Rh","us":"P","evs":{"stand":-0.5728,"hit":-0.5714,"double":-1.1429,"split":-0.6096,"surrender":-0.5}},{"section":"pairs","row":"8","up":"A","euro":"H","us":"P","evs":{"stand":-0.7679,"hit":-0.6647,"double":-1.3294,"split":-0.8871}}],"close":[{"section":"hard","row":"9","up":"2","a":"H","second":"double","margin":0.0072},{"section":"hard","row":"12","up":"4","a":"S","second":"hit","margin":0.0027},{"section":"hard","row":"14","up":"10","a":"Rh","second":"hit","margin":0.0054},{"section":"hard","row":"16","up":"9","a":"Rh","second":"hit","margin":0.0046},{"section":"soft","row":"2","up":"5","a":"D","second":"hit","margin":0.0025},{"section":"soft","row":"4","up":"4","a":"D","second":"hit","margin":0.003},{"section":"soft","row":"6","up":"2","a":"H","second":"double","margin":0.0046},{"section":"soft","row":"7","up":"2","a":"S","second":"double","margin":0.003},{"section":"soft","row":"7","up":"A","a":"H","second":"stand","margin":0.0034},{"section":"pairs","row":"3","up":"2","a":"P","second":"hit","margin":0.0087}]}</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  const LANG_KEY = 'bj-lang';
+  const L = {
+    lt: {
+      title: 'European Black Jack strategija',
+      eyebrow: 'Europietiškos taisyklės · 6 kaladės',
+      lede: 'Matematiškai geriausias sprendimas kiekvienai rankai. Apskaičiuota tiksliu sprendikliu pagal stalo taisykles, ne perrašyta iš bendros lentelės.',
+      r1: '<b>Krupjė</b> ima vieną kortą, antrą – po visų sprendimų',
+      r2: '<b>Krupjė BJ</b> paima ir double, ir split statymus',
+      r3: '<b>Soft 17</b> krupjė sustoja',
+      r4: '<b>Double</b> su bet kuriomis 2 kortomis, ir po split',
+      r5: '<b>Tūzai</b> skeliami 1 kartą, po 1 kortą, be double',
+      r6: '<b>Kitos poros</b> skeliamos iki 4 rankų',
+      r7: '<b>Black Jack</b> moka 3:2',
+      r8: '<b>Pasidavimas</b> prieš 2–10, tik su pirmomis 2 kortomis, grąžinama pusė',
+      r9: '<b>Draudimas</b> 2:1',
+      lH: 'Imti (Hit)', lS: 'Stoti (Stand)', lD: 'Dvigubinti, jei negalima – imti', lDs: 'Dvigubinti, jei negalima – stoti', lP: 'Skelti (Split)', lR: 'Pasiduoti (Surrender), jei negalima – imti',
+      gHard: 'Kietos rankos', gHardSub: 'be tūzo arba tūzas tik kaip 1',
+      gSoft: 'Minkštos rankos', gSoftSub: 'tūzas skaičiuojamas kaip 11',
+      gPairs: 'Poros', gPairsSub: 'skelti ar žaisti kaip įprastą ranką',
+      corner: 'Jūsų kortos ↓<br>Krupjė →',
+      hard: 'Kieta', softHand: 'Minkšta A ir {v}', pairHand: 'Pora {n} {n}', vs: 'prieš',
+      a_stand: 'Stoti', a_hit: 'Imti', a_double: 'Dvigubinti', a_split: 'Skelti', a_surrender: 'Pasiduoti',
+      yourHand: 'Jūsų ranka', dealer: 'Krupjė', best: 'Geriausia:',
+      ifNoDouble: 'jei dvigubinti negalima – {alt}', ifNoSurrender: 'jei pasiduoti negalima – {alt}',
+      margin: 'Pranašumas prieš „{x}“: <b>{m}</b> statymo{close}', marginClose: ' · ribinis langelis',
+      byCards: 'Pagal kortas',
+      hint: 'EV – tikėtinas rezultatas, procentais nuo pradinio statymo. Spauskite bet kurį langelį.',
+      nDiffH: 'Kuo skiriasi nuo įprastos amerikietiškos lentelės',
+      nDiffP: 'Krupjė antrą kortą gauna tik po jūsų sprendimų, o surinkęs Black Jack paima ir padvigubintą, ir išskirtas rankas. Todėl prieš 10 ir tūzą papildomi pinigai ant stalo kainuoja daugiau, negu duoda. Pasidavimas čia veikia atvirkščiai: pusė statymo grąžinama dar prieš krupjė antrą kortą, tad prieš 10 pasiduoti verta dažniau nei amerikietiškame variante.',
+      diffItem: '<b>{row} {vs} {up}</b>: {act}, ne {usAct} ({usLetter}). <em>{evs}</em>',
+      nCloseH: 'Ribiniai langeliai',
+      nCloseP: 'Čia skirtumas tarp geriausio ir antro varianto mažesnis nei 1 % statymo. Suklydę beveik nieko neprarandate.',
+      closeItem: '<b>{row} {vs} {up}</b>: {act} vietoj „{second}“ <em>· skirtumas {m}</em>',
+      nInsH: 'Draudimas ir „even money“',
+      nInsP1: 'Draudimas laimi, kai antra krupjė korta yra dešimtukas. 6 kaladėse tokių kortų tikimybė yra apie 30,9 %, o statymas apsimoka tik nuo 33,3 %. Vidutinis rezultatas – apie −7 % nuo draudimo statymo, todėl draudimo neimkite niekada.',
+      nInsP2: 'Even money (1:1 iš karto, kai turite Black Jack prieš tūzą) yra tas pats draudimas kitu pavadinimu. Laukdami gaunate 3:2 su 69,3 % tikimybe, o 30,7 % atvejų būna lygiosios: vidutiniškai +103,9 % statymo. Even money duoda lygiai +100 %, todėl jo taip pat neimkite.',
+      colophon: 'Sprendiklis skaičiuoja tikslias krupjė baigčių tikimybes 6 kaladžių batui su pašalintomis jūsų ir krupjė kortomis, o žaidėjo ėjimus – rekursyviai iki pat galo (kompozicijos lygmeniu). Kietų rankų eilutėse rodomas dviejų kortų kombinacijų svertinis vidurkis; poroms ir minkštoms rankoms – tikslios reikšmės. Išskirtų rankų EV – standartinė aproksimacija (kiekviena ranka vertinama atskirai, kita išskirta korta pašalinta iš bato). Draudimo tikimybė paskaičiuota nežinant jūsų kortų.',
+      back: '← Žaidimas',
+    },
+    en: {
+      title: 'European Black Jack strategy',
+      eyebrow: 'European rules · 6 decks',
+      lede: 'The mathematically best decision for every hand. Computed by an exact solver for these table rules, not copied from a generic chart.',
+      r1: '<b>Dealer</b> takes one card, the second after all decisions',
+      r2: '<b>Dealer BJ</b> takes double and split bets too',
+      r3: '<b>Soft 17</b> dealer stands',
+      r4: '<b>Double</b> on any 2 cards, also after a split',
+      r5: '<b>Aces</b> split once, 1 card each, no double',
+      r6: '<b>Other pairs</b> split up to 4 hands',
+      r7: '<b>Black Jack</b> pays 3:2',
+      r8: '<b>Surrender</b> against 2–10, first 2 cards only, half the bet back',
+      r9: '<b>Insurance</b> 2:1',
+      lH: 'Hit', lS: 'Stand', lD: 'Double, otherwise hit', lDs: 'Double, otherwise stand', lP: 'Split', lR: 'Surrender, otherwise hit',
+      gHard: 'Hard hands', gHardSub: 'no ace, or the ace counts as 1',
+      gSoft: 'Soft hands', gSoftSub: 'the ace counts as 11',
+      gPairs: 'Pairs', gPairsSub: 'split or play as a normal hand',
+      corner: 'Your cards ↓<br>Dealer →',
+      hard: 'Hard', softHand: 'Soft A and {v}', pairHand: 'Pair {n} {n}', vs: 'vs',
+      a_stand: 'Stand', a_hit: 'Hit', a_double: 'Double', a_split: 'Split', a_surrender: 'Surrender',
+      yourHand: 'Your hand', dealer: 'Dealer', best: 'Best:',
+      ifNoDouble: 'if doubling is not allowed – {alt}', ifNoSurrender: 'if surrender is not allowed – {alt}',
+      margin: 'Edge over “{x}”: <b>{m}</b> of the bet{close}', marginClose: ' · marginal cell',
+      byCards: 'By cards',
+      hint: 'EV – expected result, as % of the initial bet. Click any cell.',
+      nDiffH: 'How it differs from the usual American chart',
+      nDiffP: 'The dealer gets the second card only after your decisions, and a dealer Black Jack takes doubled and split hands too. So against a 10 or an ace, extra money on the table costs more than it earns. Surrender works the other way: half the bet comes back before the dealer’s second card, so against a 10 it pays to surrender more often than in the American game.',
+      diffItem: '<b>{row} {vs} {up}</b>: {act}, not {usAct} ({usLetter}). <em>{evs}</em>',
+      nCloseH: 'Marginal cells',
+      nCloseP: 'Here the gap between the best and the second-best option is under 1 % of the bet. A mistake costs almost nothing.',
+      closeItem: '<b>{row} {vs} {up}</b>: {act} instead of “{second}” <em>· difference {m}</em>',
+      nInsH: 'Insurance and even money',
+      nInsP1: 'Insurance wins when the dealer’s second card is a ten. In 6 decks that probability is about 30.9 %, and the bet only pays from 33.3 %. The average result is about −7 % of the insurance bet, so never take insurance.',
+      nInsP2: 'Even money (1:1 at once when you hold Black Jack against an ace) is insurance under another name. Waiting gives 3:2 with 69.3 % probability and a push 30.7 % of the time: +103.9 % of the bet on average. Even money pays exactly +100 %, so decline it too.',
+      colophon: 'The solver computes exact dealer outcome probabilities for a 6-deck shoe with your cards and the dealer’s card removed, and the player’s moves recursively to the end (composition level). Hard-total rows show the dealing-weighted average of the two-card combinations; pairs and soft hands are exact. Split EVs use the standard approximation (each hand valued separately, the other split card removed from the shoe). The insurance probability assumes your cards are unknown.',
+      back: '← Game',
+    },
+  };
+  let lang = (() => {
+    try { const s = localStorage.getItem(LANG_KEY); if (s === 'lt' || s === 'en') return s; } catch (e) { /* ignore */ }
+    return (navigator.language || 'en').toLowerCase().startsWith('lt') ? 'lt' : 'en';
+  })();
+  const t = (k, vars) => {
+    let s = (L[lang] && L[lang][k]) ?? L.lt[k] ?? k;
+    if (vars) for (const [n, v] of Object.entries(vars)) s = s.split('{' + n + '}').join(v);
+    return s;
+  };
+  const LETTER_ACTION = { S: 'stand', H: 'hit', D: 'double', Ds: 'double', P: 'split', Rh: 'surrender', Rs: 'surrender' };
+  const name = (a) => t('a_' + a);
+  const letterName = (l) => name(LETTER_ACTION[l]);
+  const lower = (s) => s.toLowerCase();
+
+  const dec = () => lang === 'lt' ? ',' : '.';
+  const fmt = (ev) => {
+    const v = ev * 100;
+    const s = Math.abs(v).toFixed(1).replace('.', dec());
+    return (v < 0 ? '−' : v > 0 ? '+' : '') + s + ' %';
+  };
+  const upFace = (u) => `<span class="cardface${u === 'A' ? ' red' : ''}">${u}</span>`;
+
+  const grids = document.getElementById('grids');
+  let selected = null;
+  let selectedKey = 'hard|11|' + DATA.up.indexOf('10');
+
+  const rowsHard = Object.keys(DATA.hard).filter(tt => +tt >= 5).map(tt => ({
+    key: 'hard|' + tt, label: tt, aria: () => t('hard') + ' ' + tt, cells: DATA.hard[tt]
+  }));
+  const rowsSoft = Object.keys(DATA.soft).map(v => ({
+    key: 'soft|' + v, label: 'A,' + v, sub: 'soft ' + (11 + +v), aria: () => t('softHand', { v }), cells: DATA.soft[v]
+  }));
+  const rowsPairs = Object.keys(DATA.pairs).map(v => {
+    const n = v === '1' ? 'A' : v;
+    return { key: 'pairs|' + v, label: n + ',' + n, aria: () => t('pairHand', { n }), cells: DATA.pairs[v] };
+  });
+  const cellByKey = new Map();
+  for (const rows of [rowsHard, rowsSoft, rowsPairs]) {
+    for (const row of rows) row.cells.forEach((c, i) => cellByKey.set(row.key + '|' + i, { row, i, cell: c }));
+  }
+
+  function buildGrid(id, title, subtitle, rows) {
+    const sec = document.createElement('section');
+    sec.className = 'grid';
+    sec.id = id;
+    let html = `<header><h2>${title}</h2><span>${subtitle}</span></header><div class="scroller"><table>`;
+    html += `<thead><tr><th class="corner">${t('corner')}</th>` +
+      DATA.up.map(u => `<th scope="col">${upFace(u)}</th>`).join('') + `</tr></thead><tbody>`;
+    for (const row of rows) {
+      html += `<tr><th scope="row">${row.label}${row.sub ? `<small>${row.sub}</small>` : ''}</th>`;
+      row.cells.forEach((c, i) => {
+        html += `<td><button type="button" class="a-${c.a}" data-key="${row.key}|${i}" aria-label="${row.aria()} ${t('vs')} ${DATA.up[i]}: ${letterName(c.a)}">${c.a}</button></td>`;
+      });
+      html += `</tr>`;
+    }
+    html += `</tbody></table></div>`;
+    sec.innerHTML = html;
+    grids.appendChild(sec);
+  }
+  function buildGrids() {
+    grids.innerHTML = '';
+    buildGrid('hard', t('gHard'), t('gHardSub'), rowsHard);
+    buildGrid('soft', t('gSoft'), t('gSoftSub'), rowsSoft);
+    buildGrid('pairs', t('gPairs'), t('gPairsSub'), rowsPairs);
+  }
+
+  function show(key) {
+    const hit = cellByKey.get(key);
+    if (!hit) return;
+    selectedKey = key;
+    if (selected) selected.setAttribute('aria-pressed', 'false');
+    selected = grids.querySelector(`button[data-key="${key}"]`);
+    if (selected) selected.setAttribute('aria-pressed', 'true');
+    const { row, i, cell } = hit;
+    const up = DATA.up[i];
+    document.getElementById('d-hand').innerHTML = row.label + (row.sub ? `<small>${row.sub}</small>` : '');
+    const upEl = document.getElementById('d-up');
+    upEl.textContent = up;
+    upEl.classList.toggle('red', up === 'A');
+
+    const entries = Object.entries(cell.ev).sort((a, b) => b[1] - a[1]);
+    const best = entries[0];
+    const alt = (cell.a === 'D' || cell.a === 'Rh') ? lower(name('hit')) : lower(name('stand'));
+    document.getElementById('d-verdict').innerHTML =
+      `<span class="sw a-${cell.a}">${cell.a}</span><span>${t('best')} <b>${letterName(cell.a)}</b>` +
+      (cell.a === 'D' || cell.a === 'Ds' ? `<br><small style="color:var(--muted)">${t('ifNoDouble', { alt })}</small>` : '') +
+      (cell.a === 'Rh' || cell.a === 'Rs' ? `<br><small style="color:var(--muted)">${t('ifNoSurrender', { alt })}</small>` : '') +
+      `</span>`;
+
+    const scale = Math.max(0.25, ...entries.map(e => Math.abs(e[1])));
+    document.getElementById('d-bars').innerHTML = entries.map(([k, v], idx) => {
+      const pct = Math.abs(v) / scale * 50;
+      const left = v < 0 ? 50 - pct : 50;
+      return `<li class="${idx === 0 ? 'best' : ''}"><span class="name">${name(k)}</span>` +
+        `<span class="track"><span class="zero" style="left:50%"></span><span class="fill ${v < 0 ? 'neg' : 'pos'}" style="left:${left}%;width:${pct}%"></span></span>` +
+        `<span class="val">${fmt(v)}</span></li>`;
+    }).join('');
+
+    const margin = entries.length > 1 ? best[1] - entries[1][1] : 0;
+    document.getElementById('d-margin').innerHTML = entries.length > 1
+      ? t('margin', { x: lower(name(entries[1][0])), m: fmt(margin), close: margin < 0.01 ? t('marginClose') : '' })
+      : '';
+
+    const comps = document.getElementById('d-comps');
+    if (cell.comps && cell.comps.length > 1) {
+      comps.innerHTML = `<span class="t">${t('byCards')}</span><ul>` + cell.comps.map(c =>
+        `<li><b>${c.cards.join('+')}</b><span><span class="sw a-${c.a}">${c.a}</span> ${fmt(c.best)}</span></li>`).join('') + `</ul>`;
+      comps.hidden = false;
+    } else {
+      comps.innerHTML = '';
+      comps.hidden = true;
+    }
+  }
+
+  grids.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-key]');
+    if (b) show(b.dataset.key);
+  });
+
+  const rowName = (d) => d.section === 'hard' ? t('hard') + ' ' + d.row
+    : d.section === 'soft' ? 'A,' + d.row
+    : (d.row === '1' ? 'A,A' : d.row + ',' + d.row);
+  function buildNotes() {
+    document.getElementById('diffs').innerHTML = DATA.diffs.map(d => {
+      const evs = Object.entries(d.evs).sort((a, b) => b[1] - a[1]);
+      return `<li><span class="sw a-${d.euro}">${d.euro}</span><span>` + t('diffItem', {
+        row: rowName(d), vs: t('vs'), up: d.up, act: lower(letterName(d.euro)), usAct: lower(letterName(d.us)), usLetter: d.us,
+        evs: evs.map(([k, v]) => lower(name(k)) + ' ' + fmt(v)).join(' · '),
+      }) + `</span></li>`;
+    }).join('');
+    document.getElementById('close').innerHTML = DATA.close.map(d =>
+      `<li><span class="sw a-${d.a}">${d.a}</span><span>` + t('closeItem', {
+        row: rowName(d), vs: t('vs'), up: d.up, act: lower(letterName(d.a)), second: lower(name(d.second)), m: fmt(d.margin),
+      }) + `</span></li>`).join('');
+  }
+
+  function applyLanguage() {
+    document.documentElement.lang = lang;
+    document.title = t('title');
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+    document.querySelectorAll('.lang-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    buildGrids();
+    buildNotes();
+    selected = null;
+    show(selectedKey);
+  }
+  document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => {
+    lang = b.dataset.lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
+    applyLanguage();
+  }));
+
+  applyLanguage();
+})();
+</script>

@@ -330,6 +330,51 @@
   .bet-chips .x2 { width: auto; padding: 0 12px; font-size: 15px; font-family: "Barlow Condensed", sans-serif; letter-spacing: .04em; }
   @media (min-width: 861px) { .advisor { max-height: calc(100vh - 28px); overflow-y: auto; } }
 
+  /* ---------- side menu ---------- */
+  .menu-btn { display: inline-flex; align-items: center; gap: 6px; }
+  .drawer-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); z-index: 40; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(390px, 100%);
+    background: var(--card); color: var(--ink);
+    box-shadow: -12px 0 40px rgba(0, 0, 0, .35);
+    z-index: 41;
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+  }
+  .drawer.open { transform: none; }
+  .drawer-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: calc(14px + env(safe-area-inset-top)) 16px 8px; }
+  .drawer-head h2 { font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 22px; margin: 0; }
+  .icon-btn { border: 1px solid var(--line-strong); background: none; color: var(--ink); border-radius: 50%; width: 32px; height: 32px; font-size: 15px; display: grid; place-items: center; }
+  .tabs { display: flex; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--line); }
+  .tabs button { flex: 1; border: 0; background: none; color: var(--muted); padding: 9px 6px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--gold); }
+  .tabpanel { padding: 14px 16px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; display: grid; gap: 10px; align-content: start; flex: 1; }
+  .tabpanel[hidden] { display: none; }
+  .tabpanel .t { font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .tabpanel .sep { border-top: 1px solid var(--line); margin: 4px 0; }
+  body.drawer-open { overflow: hidden; }
+  .history details { border-top: 1px solid var(--line); padding-top: 6px; }
+  .history details:first-child { border-top: 0; padding-top: 0; }
+  .history summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .history summary::-webkit-details-marker { display: none; }
+  .history summary .n { font-family: "Barlow Condensed", sans-serif; font-weight: 600; color: var(--muted); font-size: 12px; margin-right: 6px; }
+  .history details > div { padding: 4px 0 6px; display: grid; gap: 3px; }
+  .history .dec { font-size: 12.5px; }
+  .history .dec.ok { color: var(--good); }
+  .history .dec.miss { color: var(--bad); }
+  .history .dec em { font-style: normal; color: var(--muted); }
+
+  /* ---------- decision flash ---------- */
+  .flash { position: fixed; inset: 0; pointer-events: none; z-index: 30; opacity: 0; transition: opacity .35s ease; }
+  .flash.ok { opacity: 1; box-shadow: inset 0 0 0 6px var(--good), inset 0 0 90px rgba(46, 125, 79, .55); transition-duration: .08s; }
+  .flash.miss { opacity: 1; box-shadow: inset 0 0 0 6px var(--bad), inset 0 0 90px rgba(179, 38, 30, .6); transition-duration: .08s; }
+  .table.ok { box-shadow: inset 0 0 0 2px #8E6B2A, inset 0 0 60px rgba(0, 0, 0, .35), 0 0 0 4px var(--good), var(--shadow); }
+  .table.miss { box-shadow: inset 0 0 0 2px #8E6B2A, inset 0 0 60px rgba(0, 0, 0, .35), 0 0 0 4px var(--bad), var(--shadow); }
+  .table { transition: box-shadow .2s ease; }
+  @media (prefers-reduced-motion: reduce) { .drawer, .flash, .table { transition: none; } }
+
   @media (hover: none) { .keys { display: none; } }
   @media (max-width: 860px) {
     .app { padding: 14px 10px 30px; }
@@ -365,9 +410,12 @@
       <h1 data-i18n="title">European Black Jack treniruoklis</h1>
     </div>
     <div class="top-right">
-      <div class="lang-switch" role="group" aria-label="Kalba / Language">
+      <div class="row" style="gap:8px">
+        <button class="ghost menu-btn" id="menu-open" type="button" aria-haspopup="dialog" aria-controls="drawer">☰ <span data-i18n="menu">Meniu</span></button>
+        <div class="lang-switch" role="group" aria-label="Kalba / Language">
         <button type="button" data-lang="lt" aria-pressed="true">LT</button>
         <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        </div>
       </div>
       <div class="wallet">
         <span class="label" data-i18n="balance">Balansas</span>
@@ -391,7 +439,7 @@
     <aside class="advisor" id="advisor-panel">
       <header>
         <h2 data-i18n="advisor">Patarėjas</h2>
-        <select id="hint-mode">
+        <select id="hint-mode" class="hint-mode-select">
           <option value="live" data-i18n="hintLive">Rodyti iš karto</option>
           <option value="after" data-i18n="hintAfter">Rodyti po sprendimo</option>
           <option value="off" data-i18n="hintOff">Nerodyti</option>
@@ -401,65 +449,13 @@
       <div class="block" id="feedback" hidden></div>
       <div class="block">
         <span class="t" data-i18n="statsTitle">Jūsų sprendimai šioje sesijoje</span>
-        <div class="stats" id="stats"></div>
-        <p class="streak" id="streak"></p>
+        <div class="stats stats-decisions"></div>
+        <p class="streak streak-line"></p>
         <div class="foot">
-          <span id="stats-note"></span>
-          <button class="link" id="reset-stats" type="button" data-i18n="reset">Nunulinti</button>
+          <span class="stats-note"></span>
+          <button class="link" id="open-stats" type="button" data-i18n="more">Daugiau…</button>
         </div>
       </div>
-      <div class="block">
-        <span class="t" data-i18n="session">Sesija</span>
-        <div class="stats" id="session-stats"></div>
-        <canvas class="spark" id="spark" aria-hidden="true"></canvas>
-        <p class="note" id="session-note"></p>
-      </div>
-      <details class="panel history" id="history-panel">
-        <summary data-i18n="history">Istorija</summary>
-        <div><ul id="history"></ul></div>
-      </details>
-      <details class="panel settings" id="settings-panel">
-        <summary data-i18n="settings">Nustatymai</summary>
-        <div>
-          <label class="row-set"><span data-i18n="sDeals">Dalinimai</span>
-            <select id="set-drill">
-              <option value="all" data-i18n="drillAll">Visi atsitiktiniai</option>
-              <option value="tricky" data-i18n="drillTricky">Tik sudėtingos rankos</option>
-              <option value="pairs" data-i18n="drillPairs">Tik poros</option>
-              <option value="soft" data-i18n="drillSoft">Tik minkštos rankos</option>
-              <option value="surrender" data-i18n="drillSurrender">Pasidavimo situacijos</option>
-              <option value="close" data-i18n="drillClose">Ribiniai langeliai</option>
-            </select></label>
-          <label class="row-set"><span data-i18n="sLevel">Sunkumas</span>
-            <select id="set-level">
-              <option value="1" data-i18n="level1">1 – aiškios rankos</option>
-              <option value="2" data-i18n="level2">2 – mišrios</option>
-              <option value="3" data-i18n="level3">3 – tik ribos ir spąstai</option>
-            </select></label>
-          <p class="note" data-i18n="levelNote"></p>
-          <label class="row-set"><span data-i18n="sSpeed">Krupjė greitis</span>
-            <select id="set-speed">
-              <option value="normal" data-i18n="speedNormal">Įprastas</option>
-              <option value="fast" data-i18n="speedFast">Greitas</option>
-            </select></label>
-          <label class="row-set"><span data-i18n="sAuto">Automatiškai dalinti toliau</span><input type="checkbox" id="set-auto"></label>
-          <label class="row-set"><span data-i18n="sTheme">Tema</span>
-            <select id="set-theme">
-              <option value="auto" data-i18n="themeAuto">Pagal sistemą</option>
-              <option value="light" data-i18n="themeLight">Šviesi</option>
-              <option value="dark" data-i18n="themeDark">Tamsi</option>
-            </select></label>
-          <div class="row-set"><span data-i18n="sBalance">Naujas balansas</span>
-            <span class="balance-set">
-              <button class="pill" type="button" data-bal="500">500</button>
-              <button class="pill" type="button" data-bal="1000">1 000</button>
-              <button class="pill" type="button" data-bal="5000">5 000</button>
-              <input id="bal-input" type="number" min="5" step="5" inputmode="numeric" aria-label="Balansas">
-              <button class="pill primary" type="button" id="bal-set" data-i18n="setBalance">Nustatyti</button>
-            </span></div>
-          <p class="note" data-i18n="balanceNote"></p>
-        </div>
-      </details>
       <div class="foot">
         <a id="table-link" href="./lentele.html" data-i18n="tableLink">Strategijos lentelė</a>
         <span class="keys" data-i18n="keys">Klavišai: <kbd>H</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>P</kbd> <kbd>R</kbd> <kbd>Enter</kbd></span>
@@ -469,6 +465,95 @@
 
   <p class="rules-line" data-i18n="rulesLine"></p>
 </div>
+
+<div class="flash" id="flash" aria-hidden="true"></div>
+<div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="drawer-title">
+  <header class="drawer-head">
+    <h2 id="drawer-title" data-i18n="menu">Meniu</h2>
+    <button class="icon-btn" id="menu-close" type="button" aria-label="Uždaryti">✕</button>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" data-tab="settings" aria-selected="true" data-i18n="tabSettings">Nustatymai</button>
+    <button type="button" role="tab" data-tab="history" aria-selected="false" data-i18n="tabHistory">Istorija</button>
+    <button type="button" role="tab" data-tab="stats" aria-selected="false" data-i18n="tabStats">Statistika</button>
+  </nav>
+  <section class="tabpanel" data-panel="settings">
+    <label class="row-set"><span data-i18n="sHints">Patarimai</span>
+      <select class="hint-mode-select">
+        <option value="live" data-i18n="hintLive">Rodyti iš karto</option>
+        <option value="after" data-i18n="hintAfter">Rodyti po sprendimo</option>
+        <option value="off" data-i18n="hintOff">Nerodyti</option>
+      </select></label>
+    <label class="row-set"><span data-i18n="sFlash">Spalvų signalas po sprendimo</span><input type="checkbox" id="set-flash"></label>
+    <div class="row-set"><span data-i18n="sLang">Kalba</span>
+      <span class="lang-switch" role="group" aria-label="Kalba / Language">
+        <button type="button" data-lang="lt" aria-pressed="true">LT</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </span></div>
+    <div class="sep"></div>
+    <span class="t" data-i18n="training">Treniruotė</span>
+    <label class="row-set"><span data-i18n="sDeals">Dalinimai</span>
+      <select id="set-drill">
+        <option value="all" data-i18n="drillAll">Visi atsitiktiniai</option>
+        <option value="tricky" data-i18n="drillTricky">Tik sudėtingos rankos</option>
+        <option value="pairs" data-i18n="drillPairs">Tik poros</option>
+        <option value="soft" data-i18n="drillSoft">Tik minkštos rankos</option>
+        <option value="surrender" data-i18n="drillSurrender">Pasidavimo situacijos</option>
+        <option value="close" data-i18n="drillClose">Ribiniai langeliai</option>
+      </select></label>
+    <label class="row-set"><span data-i18n="sLevel">Sunkumas</span>
+      <select id="set-level">
+        <option value="1" data-i18n="level1">1 – aiškios rankos</option>
+        <option value="2" data-i18n="level2">2 – mišrios</option>
+        <option value="3" data-i18n="level3">3 – tik ribos ir spąstai</option>
+      </select></label>
+    <p class="note" data-i18n="levelNote"></p>
+    <label class="row-set"><span data-i18n="sSpeed">Krupjė greitis</span>
+      <select id="set-speed">
+        <option value="normal" data-i18n="speedNormal">Įprastas</option>
+        <option value="fast" data-i18n="speedFast">Greitas</option>
+      </select></label>
+    <label class="row-set"><span data-i18n="sAuto">Automatiškai dalinti toliau</span><input type="checkbox" id="set-auto"></label>
+    <label class="row-set"><span data-i18n="sLearn">Mokytis iš klaidų</span><input type="checkbox" id="set-learn"></label>
+    <p class="note" data-i18n="learnNote"></p>
+    <p class="note" id="learn-pool"></p>
+    <div><button class="pill" id="clear-pool" type="button" data-i18n="clearPool">Išvalyti klaidų sąrašą</button></div>
+    <div class="sep"></div>
+    <label class="row-set"><span data-i18n="sTheme">Tema</span>
+      <select id="set-theme">
+        <option value="auto" data-i18n="themeAuto">Pagal sistemą</option>
+        <option value="light" data-i18n="themeLight">Šviesi</option>
+        <option value="dark" data-i18n="themeDark">Tamsi</option>
+      </select></label>
+    <div class="row-set"><span data-i18n="sBalance">Naujas balansas</span>
+      <span class="balance-set">
+        <button class="pill" type="button" data-bal="500">500</button>
+        <button class="pill" type="button" data-bal="1000">1 000</button>
+        <button class="pill" type="button" data-bal="5000">5 000</button>
+        <input id="bal-input" type="number" min="5" step="5" inputmode="numeric" aria-label="Balansas">
+        <button class="pill primary" type="button" id="bal-set" data-i18n="setBalance">Nustatyti</button>
+      </span></div>
+    <p class="note" data-i18n="balanceNote"></p>
+  </section>
+  <section class="tabpanel history" data-panel="history" hidden>
+    <p class="note" data-i18n="historyHint"></p>
+    <div id="history"></div>
+  </section>
+  <section class="tabpanel" data-panel="stats" hidden>
+    <span class="t" data-i18n="statsTitle">Jūsų sprendimai šioje sesijoje</span>
+    <div class="stats stats-decisions"></div>
+    <p class="streak streak-line"></p>
+    <p class="note stats-note"></p>
+    <div><button class="pill" id="reset-stats" type="button" data-i18n="reset">Nunulinti</button></div>
+    <div class="sep"></div>
+    <span class="t" data-i18n="session">Sesija</span>
+    <div class="stats" id="session-stats"></div>
+    <canvas class="spark" id="spark" aria-hidden="true"></canvas>
+    <p class="note" id="session-note"></p>
+    <div><button class="pill" id="reset-session" type="button" data-i18n="resetSession">Pradėti sesiją iš naujo</button></div>
+  </section>
+</aside>
 
 <script>
 // Blackjack expected-value solver (composition-dependent, exact dealer
@@ -969,6 +1054,14 @@ function buildStrategy(rulesIn) {
       statsNote: 'Prarasta EV – klaidų kaina, sudėta procentais nuo statymo.', statsNone: 'Kol kas sprendimų nėra.',
       handAria: 'Ranka {n}',
       undoChip: 'Atimti paskutinį žetoną', doubleBet: 'Dvigubinti statymą',
+      menu: 'Meniu', close: 'Uždaryti', tabSettings: 'Nustatymai', tabHistory: 'Istorija', tabStats: 'Statistika', more: 'Daugiau…',
+      sHints: 'Patarimai', sLang: 'Kalba', sFlash: 'Spalvų signalas po sprendimo', training: 'Treniruotė',
+      historyHint: 'Naujausi dalinimai viršuje. Spustelėkite dalinimą, kad pamatytumėte visus jo sprendimus.',
+      roundN: 'Dalinimas {n}', resetSession: 'Pradėti sesiją iš naujo',
+      sLearn: 'Mokytis iš klaidų', learnNote: 'Rankos, kuriose suklydote, dalinamos dažniau (maždaug kas antrą kartą), kol jas du kartus iš eilės sužaisite teisingai. Kai sąrašas ištuštėja, vėl dalinamos visos rankos.',
+      learnPool: 'Šiuo metu mokoma: {list}', learnEmpty: 'klaidų sąrašas tuščias', clearPool: 'Išvalyti klaidų sąrašą', fromPool: 'iš klaidų sąrašo',
+      dOk: '✓ {label} {vs} {up}: {action} ({ev})', dMiss: '✗ {label} {vs} {up}: {action} ({ev}), geriau {best} ({bev}) <em>· kaina {cost}</em>',
+      dOkC: '✓ {label}: {action}', dMissC: '✗ {label}: {action}, geriau {best} <em>· kaina {cost}</em>',
       session: 'Sesija', sRounds: 'Dalinimai', sNet: 'Rezultatas', sStreak: 'Iš eilės',
       streak: 'Teisingų sprendimų iš eilės: <b>{cur}</b> · geriausia serija <b>{best}</b>',
       sessionNote: 'Laimėta {w} · lygiosios {p} · pralaimėta {l} · didžiausias laimėjimas {best} · didžiausias pralaimėjimas {worst}',
@@ -1032,6 +1125,14 @@ function buildStrategy(rulesIn) {
       statsNote: 'EV lost – the cost of mistakes, summed as % of the bet.', statsNone: 'No decisions yet.',
       handAria: 'Hand {n}',
       undoChip: 'Remove the last chip', doubleBet: 'Double the bet',
+      menu: 'Menu', close: 'Close', tabSettings: 'Settings', tabHistory: 'History', tabStats: 'Statistics', more: 'More…',
+      sHints: 'Hints', sLang: 'Language', sFlash: 'Colour flash after a decision', training: 'Training',
+      historyHint: 'Newest rounds first. Tap a round to see all of its decisions.',
+      roundN: 'Round {n}', resetSession: 'Restart the session',
+      sLearn: 'Learn from mistakes', learnNote: 'Hands you got wrong are dealt more often (about every second deal) until you play them correctly twice in a row. When the list is empty, all hands are dealt again.',
+      learnPool: 'Currently practising: {list}', learnEmpty: 'no mistakes queued', clearPool: 'Clear the mistake list', fromPool: 'from the mistake list',
+      dOk: '✓ {label} {vs} {up}: {action} ({ev})', dMiss: '✗ {label} {vs} {up}: {action} ({ev}), better {best} ({bev}) <em>· cost {cost}</em>',
+      dOkC: '✓ {label}: {action}', dMissC: '✗ {label}: {action}, better {best} <em>· cost {cost}</em>',
       session: 'Session', sRounds: 'Rounds', sNet: 'Net', sStreak: 'In a row',
       streak: 'Correct decisions in a row: <b>{cur}</b> · best streak <b>{best}</b>',
       sessionNote: 'Won {w} · push {p} · lost {l} · biggest win {best} · biggest loss {worst}',
@@ -1104,9 +1205,10 @@ function buildStrategy(rulesIn) {
     advice: null, feedback: null, hintMode: 'live',
     stats: { decisions: 0, correct: 0, evLost: 0 },
     streak: { cur: 0, best: 0 },
-    settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto' },
+    settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto', flash: true, learn: false },
+    mistakes: {}, fromPool: false,
     session: freshSession(1000),
-    roundMistakes: [], autoTimer: null,
+    roundDecisions: [], autoTimer: null, flashTimer: null, drawerTab: 'settings',
     seen: new Set(),
   };
   try {
@@ -1117,13 +1219,14 @@ function buildStrategy(rulesIn) {
       if (saved.stats) state.stats = saved.stats;
       if (saved.hintMode) state.hintMode = saved.hintMode;
       if (saved.streak) state.streak = saved.streak;
+      if (saved.mistakes && typeof saved.mistakes === 'object') state.mistakes = saved.mistakes;
       if (saved.settings) state.settings = { ...state.settings, ...saved.settings };
       if (saved.session && Array.isArray(saved.session.series)) state.session = { ...freshSession(state.balance), ...saved.session };
     }
   } catch (e) { /* storage unavailable */ }
   function persist() {
-    const sess = { ...state.session, series: state.session.series.slice(-200), history: state.session.history.slice(0, 20) };
-    try { localStorage.setItem(STORE, JSON.stringify({ balance: state.balance, lastBet: state.lastBet, stats: state.stats, hintMode: state.hintMode, streak: state.streak, settings: state.settings, session: sess })); } catch (e) { /* ignore */ }
+    const sess = { ...state.session, series: state.session.series.slice(-200), history: state.session.history.slice(0, 50) };
+    try { localStorage.setItem(STORE, JSON.stringify({ balance: state.balance, lastBet: state.lastBet, stats: state.stats, hintMode: state.hintMode, streak: state.streak, settings: state.settings, session: sess, mistakes: state.mistakes })); } catch (e) { /* ignore */ }
   }
   const CHIP_ORDER = [100, 50, 25, 10, 5];
   const decompose = (amount) => { const out = []; let left = Math.floor(amount / 5) * 5; for (const c of CHIP_ORDER) while (left >= c) { out.push(c); left -= c; } return out; };
@@ -1170,6 +1273,39 @@ function buildStrategy(rulesIn) {
     [13, [2, 3, 7]], [14, [7, 9, 10]], [15, [7, 9, 10, 1]], [16, [7, 8, 9, 10, 1]],
   ].map(([tot, ups]) => () => hardOf(tot, ups));
   const HARD_SETS = { soft: HARD_SOFT, pairs: HARD_PAIRS, tricky: [...HARD_SOFT, ...HARD_PAIRS, ...HARD_HARD] };
+
+  // ---------- learn from mistakes: cells the player got wrong, dealt again until answered right twice ----------
+  const upValue = (r) => r === 'A' ? 1 : (r === '10' || r === 'J' || r === 'Q' || r === 'K') ? 10 : +r;
+  const mistakeKey = (label, up) => (label.key ? label.key : label.k + ':' + label.v) + '|' + upValue(up);
+  function noteDecision(label, up, ok) {
+    const key = mistakeKey(label, up);
+    const m = state.mistakes[key];
+    if (ok) {
+      if (m) { m.count--; if (m.count <= 0) delete state.mistakes[key]; }
+    } else {
+      state.mistakes[key] = { key, label, up: String(upValue(up)), count: Math.min(5, (m ? m.count : 0) + 2) };
+    }
+  }
+  function specFromMistake(m) {
+    const up = +m.up;
+    const L = m.label;
+    try {
+      if (L.key === 'bjVsA') return [1, 1, 10];
+      if (L.key === 'insVsA') return [1, 10, 6];
+      if (L.k === 'pair') { const v = L.v.split(',')[0]; return pairOf(v === 'A' ? 1 : +v, [up]); }
+      if (L.k === 'soft') { const o = +L.v - 11; return o >= 2 && o <= 9 ? softOf(o, [up]) : null; }
+      if (L.k === 'hard') { const tot = +L.v; return tot >= 5 && tot <= 19 ? hardOf(tot, [up]) : null; }
+    } catch (e) { /* unreproducible cell */ }
+    return null;
+  }
+  function pickMistake() {
+    const list = Object.values(state.mistakes);
+    if (!list.length || Math.random() > 0.55) return null;
+    const total = list.reduce((a, m) => a + m.count, 0);
+    let r = Math.random() * total;
+    for (const m of list) { r -= m.count; if (r <= 0) return specFromMistake(m); }
+    return specFromMistake(list[list.length - 1]);
+  }
 
   function drillHand(kind) {
     const lvl = +state.settings.level || 3;
@@ -1263,12 +1399,14 @@ function buildStrategy(rulesIn) {
     state.balance -= state.bet;
     state.lastBet = state.bet;
     state.shoe = newShoe();
+    state.fromPool = false;
+    if (!state.rigged && state.settings.learn) { const spec = pickMistake(); if (spec) { state.rigged = spec; state.fromPool = true; } }
     if (!state.rigged && state.settings.drill !== 'all') state.rigged = drillHand(state.settings.drill);
     if (state.rigged) { // cards dealt next, in order: dealer up card, player's two cards, further draws
       for (const spec of state.rigged.slice().reverse()) state.shoe.push(takeCard(spec));
       state.rigged = null;
     }
-    state.roundMistakes = [];
+    state.roundDecisions = [];
     state.dealer = [draw()];
     state.hands = [{ cards: [draw(), draw()], bet: state.bet, done: false }];
     state.active = 0;
@@ -1299,17 +1437,32 @@ function buildStrategy(rulesIn) {
     render();
   }
   // custom feedback keeps keys + value producers so it can be re-rendered in either language
-  function bump(cost, mistake) {
+  function bump(cost, decision) {
+    const ok = cost <= 1e-9;
     state.stats.decisions++;
-    if (cost <= 1e-9) {
+    if (ok) {
       state.stats.correct++;
       state.streak.cur++;
       if (state.streak.cur > state.streak.best) state.streak.best = state.streak.cur;
     } else {
       state.stats.evLost += cost;
       state.streak.cur = 0;
-      state.roundMistakes.push(mistake);
     }
+    state.roundDecisions.push({ ...decision, ok });
+    noteDecision(decision.label, decision.up, ok);
+    flash(ok);
+  }
+  // green / red glow around the screen and the table after every decision
+  function flash(ok) {
+    if (state.settings.flash === false) return;
+    const cls = ok ? 'ok' : 'miss';
+    for (const el of [$('flash'), $('table')]) {
+      el.classList.remove('ok', 'miss');
+      void el.offsetWidth;
+      el.classList.add(cls);
+    }
+    clearTimeout(state.flashTimer);
+    state.flashTimer = setTimeout(() => { $('flash').classList.remove('ok', 'miss'); $('table').classList.remove('ok', 'miss'); }, 900);
   }
   function recordCustom(cost, labelKey, textKey, vars) {
     const chosen = textKey === 'emTaken' ? 'rEven' : textKey === 'emWait' ? 'rWait' : textKey === 'insTaken' ? 'rIns' : 'rNoIns';
@@ -1322,7 +1475,7 @@ function buildStrategy(rulesIn) {
     const a = state.advice;
     if (!a || a.evs[action] === undefined) return;
     const cost = a.evs[a.best] - a.evs[action];
-    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost });
+    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost, ev: a.evs[action], bev: a.evs[a.best] });
     state.feedback = { action, best: a.best, evs: a.evs, cost, label: a.label, up: a.up, infeasible: a.infeasible };
     persist();
   }
@@ -1422,13 +1575,13 @@ function buildStrategy(rulesIn) {
     if (net < ss.worst) ss.worst = net;
     ss.series.push(state.balance);
     if (ss.series.length > 200) ss.series.shift();
-    ss.history.unshift({
+    ss.history.unshift({ n: ss.rounds,
       dealer: state.dealer.map(c => c.r + c.s), dBJ, dBust: dt.bust, dTotal: dt.total,
       hands: state.hands.map(h => ({ cards: h.cards.map(c => c.r + c.s), res: h.result, net: h.payout - h.bet })),
       insurance: state.insuranceResult ? (state.insuranceResult === 'win' ? 2 * state.insurance : -state.insurance) : 0,
-      net, mistakes: state.roundMistakes.slice(),
+      net, decisions: state.roundDecisions.slice(),
     });
-    if (ss.history.length > 20) ss.history.pop();
+    if (ss.history.length > 50) ss.history.pop();
     persist();
     render();
     if (state.settings.autoDeal && state.balance >= 5) {
@@ -1492,7 +1645,7 @@ function buildStrategy(rulesIn) {
     state.advice = computeAdvice();
     $('balance').textContent = fmtMoney(state.balance);
     $('topup').hidden = !(state.phase === 'bet' && state.balance < 5);
-    $('hint-mode').value = state.hintMode;
+    document.querySelectorAll('.hint-mode-select').forEach(el => { el.value = state.hintMode; });
 
     const showSlot = state.dealer.length === 1 && (state.phase === 'insurance' || state.phase === 'play' || state.phase === 'dealer');
     $('dealer-cards').innerHTML = state.dealer.map(cardHTML).join('') + (showSlot ? `<div class="card slot">${t('slot')}</div>` : '');
@@ -1523,7 +1676,7 @@ function buildStrategy(rulesIn) {
         : t('msgIns', { x: fmtMoney(state.hands[0].bet / 2) }); break;
       case 'play': {
         const h = state.hands[state.active];
-        m.innerHTML = h.natural ? t('msgBJ') : (state.hands.length > 1 ? t('msgHandTurn', { n: state.active + 1 }) : t('msgTurn'));
+        m.innerHTML = (h.natural ? t('msgBJ') : (state.hands.length > 1 ? t('msgHandTurn', { n: state.active + 1 }) : t('msgTurn'))) + (state.fromPool ? ` <small style="color:var(--table-muted)">· ${t('fromPool')}</small>` : '');
         break;
       }
       case 'dealer': m.innerHTML = t('msgDealer'); break;
@@ -1661,11 +1814,11 @@ function buildStrategy(rulesIn) {
 
     const s = state.stats;
     const acc = s.decisions ? Math.round(100 * s.correct / s.decisions) : 0;
-    $('stats').innerHTML = `<div class="stat"><span class="n">${s.decisions}</span><span class="l">${t('stDecisions')}</span></div>
+    document.querySelectorAll('.stats-decisions').forEach(el => { el.innerHTML = `<div class="stat"><span class="n">${s.decisions}</span><span class="l">${t('stDecisions')}</span></div>
       <div class="stat"><span class="n">${acc} %</span><span class="l">${t('stCorrect')}</span></div>
-      <div class="stat"><span class="n">${(s.evLost * 100).toFixed(1).replace('.', dec())} %</span><span class="l">${t('stLost')}</span></div>`;
-    $('stats-note').textContent = s.decisions ? t('statsNote') : t('statsNone');
-    $('streak').innerHTML = t('streak', { cur: state.streak.cur, best: state.streak.best });
+      <div class="stat"><span class="n">${(s.evLost * 100).toFixed(1).replace('.', dec())} %</span><span class="l">${t('stLost')}</span></div>`; });
+    document.querySelectorAll('.stats-note').forEach(el => { el.textContent = s.decisions ? t('statsNote') : t('statsNone'); });
+    document.querySelectorAll('.streak-line').forEach(el => { el.innerHTML = t('streak', { cur: state.streak.cur, best: state.streak.best }); });
 
     const ss = state.session;
     const signed = (n) => (n > 0 ? '+' : '') + fmtMoney(n);
@@ -1676,6 +1829,11 @@ function buildStrategy(rulesIn) {
     drawSpark();
     renderHistory();
 
+    $('set-flash').checked = state.settings.flash !== false;
+    $('set-learn').checked = !!state.settings.learn;
+    const pool = Object.values(state.mistakes).sort((a, b) => b.count - a.count);
+    $('learn-pool').innerHTML = t('learnPool', { list: pool.length ? pool.map(m => `<b>${labelText(m.label)}${m.label.key ? '' : ' ' + t('vs') + ' ' + (m.up === '1' ? 'A' : m.up)}</b> (${m.count})`).join(', ') : t('learnEmpty') });
+    $('clear-pool').disabled = !pool.length;
     $('set-drill').value = state.settings.drill;
     $('set-level').value = String(state.settings.level);
     $('set-speed').value = state.settings.speed;
@@ -1688,7 +1846,8 @@ function buildStrategy(rulesIn) {
     if (!c) return;
     const series = state.session.series;
     const dpr = window.devicePixelRatio || 1;
-    const w = c.clientWidth || 260, h = 44;
+    if (!c.clientWidth) return;
+    const w = c.clientWidth, h = 44;
     c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
     const ctx = c.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1717,19 +1876,52 @@ function buildStrategy(rulesIn) {
   function renderHistory() {
     const list = state.session.history;
     const el = $('history');
-    if (!list.length) { el.innerHTML = `<li class="note">${t('historyEmpty')}</li>`; return; }
+    if (!list.length) { el.innerHTML = `<p class="note">${t('historyEmpty')}</p>`; return; }
     const netCls = (n) => n > 0 ? 'pos' : n < 0 ? 'neg' : '';
     const signed = (n) => (n > 0 ? '+' : '') + fmtMoney(n);
-    el.innerHTML = list.slice(0, 8).map(r => {
+    el.innerHTML = list.map((r, i) => {
       const dealerTotal = r.dBJ ? t('bj') : r.dBust ? t('bust', { n: r.dTotal }) : r.dealer.length === 1 ? '' : r.dTotal;
       const hands = r.hands.map(h => `${h.cards.join(' ')} <span class="net ${netCls(h.net)}">${signed(h.net)}</span>`).join(' · ');
-      const ins = r.insurance ? ` · ${t('insTitle').toLowerCase()} <span class="net ${netCls(r.insurance)}">${signed(r.insurance)}</span>` : '';
-      const miss = r.mistakes.map(m => `<div class="miss">${t('hMistake', {
-        label: labelText(m.label), vs: t('vs'), up: m.up,
-        action: m.action ? lower(name(m.action)) : t(m.chosenKey), best: m.best ? lower(name(m.best)) : t(m.bestKey), cost: fmtPct(m.cost),
-      })}</div>`).join('');
-      return `<li><div class="hr"><span>${t('dealerShort')} ${r.dealer.join(' ')} <b>${dealerTotal}</b></span><span class="net ${netCls(r.net)}">${signed(r.net)}</span></div><div class="hh">${hands}${ins}</div>${miss}</li>`;
+      const ins = r.insurance ? ` · ${lower(t('insTitle'))} <span class="net ${netCls(r.insurance)}">${signed(r.insurance)}</span>` : '';
+      const decisions = (r.decisions || r.mistakes || []).map(m => {
+        const ok = m.ok !== undefined ? m.ok : false;
+        let text;
+        if (m.action) {
+          text = ok ? t('dOk', { label: labelText(m.label), vs: t('vs'), up: m.up, action: lower(name(m.action)), ev: fmtPct(m.ev ?? 0) })
+                    : t('dMiss', { label: labelText(m.label), vs: t('vs'), up: m.up, action: lower(name(m.action)), ev: m.ev !== undefined ? fmtPct(m.ev) : '', best: lower(name(m.best)), bev: m.bev !== undefined ? fmtPct(m.bev) : '', cost: fmtPct(m.cost) });
+        } else {
+          text = ok ? t('dOkC', { label: labelText(m.label), action: t(m.chosenKey) })
+                    : t('dMissC', { label: labelText(m.label), action: t(m.chosenKey), best: t(m.bestKey), cost: fmtPct(m.cost) });
+        }
+        return `<div class="dec ${ok ? 'ok' : 'miss'}">${text}</div>`;
+      }).join('');
+      const misses = (r.decisions || r.mistakes || []).filter(m => m.ok === false || m.ok === undefined).length;
+      return `<details${i === 0 ? ' open' : ''}><summary><span><span class="n">${t('roundN', { n: r.n || list.length - i })}</span>${t('dealerShort')} ${r.dealer.join(' ')} <b>${dealerTotal}</b>${misses ? ` <span class="net neg">✗${misses}</span>` : ''}</span><span class="net ${netCls(r.net)}">${signed(r.net)}</span></summary>
+        <div><div class="hh">${hands}${ins}</div>${decisions}</div></details>`;
     }).join('');
+  }
+
+  // ---------- side menu ----------
+  function openDrawer(tab) {
+    if (tab) selectTab(tab);
+    $('drawer').classList.add('open');
+    $('drawer').setAttribute('aria-hidden', 'false');
+    $('drawer-backdrop').hidden = false;
+    document.body.classList.add('drawer-open');
+    drawSpark();
+    $('menu-close').focus();
+  }
+  function closeDrawer() {
+    $('drawer').classList.remove('open');
+    $('drawer').setAttribute('aria-hidden', 'true');
+    $('drawer-backdrop').hidden = true;
+    document.body.classList.remove('drawer-open');
+  }
+  function selectTab(tab) {
+    state.drawerTab = tab;
+    document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+    document.querySelectorAll('.tabpanel').forEach(p => { p.hidden = p.dataset.panel !== tab; });
+    if (tab === 'stats') drawSpark();
   }
 
   function applyLanguage() {
@@ -1737,6 +1929,7 @@ function buildStrategy(rulesIn) {
     document.title = t('title');
     document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
     document.querySelectorAll('.lang-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    $('menu-close').setAttribute('aria-label', t('close'));
     render();
   }
 
@@ -1758,12 +1951,21 @@ function buildStrategy(rulesIn) {
     else if (['hit', 'stand', 'double', 'split', 'surrender'].includes(act)) window.requestAnimationFrame(() => actWith(act));
   });
   function actWith(action) { act(action); }
-  $('hint-mode').addEventListener('change', (e) => { state.hintMode = e.target.value; persist(); render(); });
+  document.querySelectorAll('.hint-mode-select').forEach(el => el.addEventListener('change', (e) => { state.hintMode = e.target.value; persist(); render(); }));
   $('reset-stats').addEventListener('click', () => { state.stats = { decisions: 0, correct: 0, evLost: 0 }; state.feedback = null; persist(); render(); });
   $('topup').addEventListener('click', () => { state.balance += 1000; state.betStack = decompose(Math.min(state.lastBet, state.balance)); betFromStack(); persist(); render(); });
   $('set-drill').addEventListener('change', (e) => { state.settings.drill = e.target.value; persist(); });
   $('set-speed').addEventListener('change', (e) => { state.settings.speed = e.target.value; persist(); });
   $('set-level').addEventListener('change', (e) => { state.settings.level = +e.target.value; persist(); });
+  $('set-flash').addEventListener('change', (e) => { state.settings.flash = e.target.checked; persist(); });
+  $('set-learn').addEventListener('change', (e) => { state.settings.learn = e.target.checked; persist(); render(); });
+  $('clear-pool').addEventListener('click', () => { state.mistakes = {}; persist(); render(); });
+  $('reset-session').addEventListener('click', () => { state.session = freshSession(state.balance); persist(); render(); });
+  $('menu-open').addEventListener('click', () => openDrawer());
+  $('open-stats').addEventListener('click', () => openDrawer('stats'));
+  $('menu-close').addEventListener('click', closeDrawer);
+  $('drawer-backdrop').addEventListener('click', closeDrawer);
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => selectTab(b.dataset.tab)));
   $('set-auto').addEventListener('change', (e) => { state.settings.autoDeal = e.target.checked; persist(); });
   $('set-theme').addEventListener('change', (e) => { state.settings.theme = e.target.value; persist(); applyTheme(); render(); });
   document.querySelectorAll('button[data-bal]').forEach(b => b.addEventListener('click', () => setBalance(+b.dataset.bal)));
@@ -1776,7 +1978,8 @@ function buildStrategy(rulesIn) {
     applyLanguage();
   }));
   document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Escape' && $('drawer').classList.contains('open')) { e.preventDefault(); closeDrawer(); return; }
+    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || $('drawer').classList.contains('open') || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
     if (state.phase === 'play') {
       const map = { h: 'hit', s: 'stand', d: 'double', p: 'split', r: 'surrender' };
@@ -1789,7 +1992,7 @@ function buildStrategy(rulesIn) {
 
   // test hook for local runs only: __bj.rig([{r:'A'},{r:'K'},{r:'A'}]) rigs the next deal
   // (dealer up card first, then the player's two cards, then further draws)
-  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
+  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
   // inside the desktop app the table is bundled next to the game
   if (location.protocol === 'bjapp:') $('table-link').href = 'bjapp://app/strategija.html';
 

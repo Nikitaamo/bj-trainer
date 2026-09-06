@@ -490,6 +490,12 @@
         <option value="after" data-i18n="hintAfter">Rodyti po sprendimo</option>
         <option value="off" data-i18n="hintOff">Nerodyti</option>
       </select></label>
+    <label class="row-set"><span data-i18n="sGrading">Vertinimas</span>
+      <select id="set-grading">
+        <option value="table" data-i18n="gradeTable">Lentelė arba tikslus EV</option>
+        <option value="exact" data-i18n="gradeExact">Tik tiksliai pagal kortas</option>
+      </select></label>
+    <p class="note" data-i18n="gradingNote"></p>
     <label class="row-set"><span data-i18n="sFlash">Spalvų signalas po sprendimo</span><input type="checkbox" id="set-flash"></label>
     <div class="row-set"><span data-i18n="sLang">Kalba</span>
       <span class="lang-switch" role="group" aria-label="Kalba / Language">
@@ -518,6 +524,7 @@
       <select id="set-speed">
         <option value="normal" data-i18n="speedNormal">Įprastas</option>
         <option value="fast" data-i18n="speedFast">Greitas</option>
+        <option value="instant" data-i18n="speedInstant">Akimirksniu</option>
       </select></label>
     <label class="row-set"><span data-i18n="sAuto">Automatiškai dalinti toliau</span><input type="checkbox" id="set-auto"></label>
     <label class="row-set"><span data-i18n="sLearn">Mokytis iš klaidų</span><input type="checkbox" id="set-learn"></label>
@@ -1043,7 +1050,7 @@ function buildStrategy(rulesIn) {
       waitBtn: 'Laukti (3:2 arba lygiosios)', evenBtn: 'Even money +{x}',
       tipNoIns: 'be draudimo', tipInsDetail: 'draudimo EV {ev}', noInsBtn: 'Be draudimo', insBtn: 'Draudimas {x}',
       newRound: 'Naujas dalinimas', changeBet: 'Keisti statymą',
-      tipOk: '✓ {action} – teisingai', tipMiss: '✗ geriau buvo {best} · kaina {cost}',
+      tipOk: '✓ {action} – teisingai', tipTie: '✓ {action} – teisingai (variantai lygiaverčiai)', tipMiss: '✗ geriau buvo {best} · kaina {cost}',
       curHand: 'Dabartinė ranka', vs: 'prieš',
       offNote: 'Patarimai išjungti. Sprendimai vis tiek skaičiuojami statistikoje.',
       evenTitle: 'Even money', evenVerdict: 'Laukti, even money neimti', evenSub: 'Laukiant EV {w}, even money lygiai {e}',
@@ -1058,6 +1065,12 @@ function buildStrategy(rulesIn) {
       dealerNote: 'Krupjė traukia kortas.', doneNote: 'Dalinimas baigtas.',
       lastDecision: 'Paskutinis sprendimas · {label}',
       fbOk: '<b>{action}</b> – teisingai.',
+      fbTable: '<b>{action}</b> – teisingai pagal lentelę. <em>Tiksliai su šiomis kortomis {best} ({bev}) geresnis {diff}: tai konkrečių kortų kompozicijos efektas, lentelė rodo visų kombinacijų vidurkį.</em>',
+      fbMarginal: '<b>{action}</b> – priimtina. <em>{best} ({bev}) geresnis tik {diff}.</em>',
+      tipTable: '✓ {action} – pagal lentelę teisingai', tipMarginal: '✓ {action} – priimtina (skirtumas {diff})', tableNote: 'pagal lentelę; tiksliai {best} ({bev})',
+      sGrading: 'Vertinimas', gradeTable: 'Lentelė arba tikslus EV', gradeExact: 'Tik tiksliai pagal kortas',
+      gradingNote: 'Įprastai teisingu laikomas lentelės veiksmas, tikslus geriausias veiksmas pagal kortas ir bet kuris variantas, kai skirtumas mažesnis nei 0,5 % statymo. Griežtas režimas priima tik tikslų geriausią.',
+      fbTie: '<b>{action}</b> – teisingai. <em>{other} ({ev}) praktiškai lygiavertis: skirtumas mažesnis nei 0,05 % statymo.</em>', tieNote: 'lygiavertis {other} ({ev})',
       fbMiss: 'Pasirinkote <b>{action}</b> ({ev}), geriau buvo <b>{best}</b> ({bev}). <em>Kaina: {cost} statymo.</em>',
       emTaken: 'Paėmėte <b>even money</b> ({e}), laukiant vidutiniškai gautumėte {w}. <em>Kaina: {cost} statymo.</em>',
       emWait: '<b>Laukti</b> – teisingai. Even money duotų {e}, laukimas vidutiniškai {w}.',
@@ -1116,7 +1129,7 @@ function buildStrategy(rulesIn) {
       settings: 'Nustatymai', sDeals: 'Dalinimai', drillAll: 'Visi atsitiktiniai', drillTricky: 'Tik sudėtingos rankos', drillPairs: 'Tik poros', drillSoft: 'Tik minkštos rankos', drillSurrender: 'Pasidavimo situacijos', drillClose: 'Ribiniai langeliai',
       sLevel: 'Sunkumas', level1: '1 – aiškios rankos', level2: '2 – mišrios', level3: '3 – tik ribos ir spąstai',
       levelNote: 'Galioja režimams „sudėtingos“, „poros“ ir „minkštos“: 3 lygyje dalinamos tik rankos, kur sprendimas keičiasi nuo vienos krupjė kortos (pvz., A,7 prieš 8–9, 9,9 prieš 7–8, 4,4 prieš 4–5, A,A prieš 10–A).',
-      sSpeed: 'Krupjė greitis', speedNormal: 'Įprastas', speedFast: 'Greitas',
+      sSpeed: 'Krupjė greitis', speedNormal: 'Įprastas', speedFast: 'Greitas', speedInstant: 'Akimirksniu',
       sAuto: 'Automatiškai dalinti toliau', sTheme: 'Tema', themeAuto: 'Pagal sistemą', themeLight: 'Šviesi', themeDark: 'Tamsi',
       sBalance: 'Naujas balansas', setBalance: 'Nustatyti', balanceNote: 'Nustačius naują balansą sesijos skaitikliai ir grafikas pradedami iš naujo; sprendimų statistika lieka.',
       rEven: 'even money', rIns: 'draudimas', rNoIns: 'be draudimo', rWait: 'laukti',
@@ -1145,7 +1158,7 @@ function buildStrategy(rulesIn) {
       waitBtn: 'Wait (3:2 or push)', evenBtn: 'Even money +{x}',
       tipNoIns: 'no insurance', tipInsDetail: 'insurance EV {ev}', noInsBtn: 'No insurance', insBtn: 'Insurance {x}',
       newRound: 'New deal', changeBet: 'Change bet',
-      tipOk: '✓ {action} – correct', tipMiss: '✗ better: {best} · cost {cost}',
+      tipOk: '✓ {action} – correct', tipTie: '✓ {action} – correct (the options are equal)', tipMiss: '✗ better: {best} · cost {cost}',
       curHand: 'Current hand', vs: 'vs',
       offNote: 'Hints are off. Decisions still count in the statistics.',
       evenTitle: 'Even money', evenVerdict: 'Wait, decline even money', evenSub: 'Waiting EV {w}, even money exactly {e}',
@@ -1160,6 +1173,12 @@ function buildStrategy(rulesIn) {
       dealerNote: 'The dealer is drawing.', doneNote: 'Round over.',
       lastDecision: 'Last decision · {label}',
       fbOk: '<b>{action}</b> – correct.',
+      fbTable: '<b>{action}</b> – correct by the table. <em>Exactly with these cards {best} ({bev}) is better by {diff}: a composition effect, the table shows the average over all combinations.</em>',
+      fbMarginal: '<b>{action}</b> – acceptable. <em>{best} ({bev}) is better by only {diff}.</em>',
+      tipTable: '✓ {action} – correct by the table', tipMarginal: '✓ {action} – acceptable (gap {diff})', tableNote: 'by the table; exactly {best} ({bev})',
+      sGrading: 'Grading', gradeTable: 'Table or exact EV', gradeExact: 'Exact EV only',
+      gradingNote: 'By default the table action, the exact best action for these cards and any option within 0.5 % of the bet all count as correct. Strict mode accepts only the exact best.',
+      fbTie: '<b>{action}</b> – correct. <em>{other} ({ev}) is practically equal: the gap is under 0.05 % of the bet.</em>', tieNote: 'equal to {other} ({ev})',
       fbMiss: 'You chose <b>{action}</b> ({ev}), better was <b>{best}</b> ({bev}). <em>Cost: {cost} of the bet.</em>',
       emTaken: 'You took <b>even money</b> ({e}); waiting would average {w}. <em>Cost: {cost} of the bet.</em>',
       emWait: '<b>Wait</b> – correct. Even money would give {e}, waiting averages {w}.',
@@ -1218,7 +1237,7 @@ function buildStrategy(rulesIn) {
       settings: 'Settings', sDeals: 'Deals', drillAll: 'All random', drillTricky: 'Tricky hands only', drillPairs: 'Pairs only', drillSoft: 'Soft hands only', drillSurrender: 'Surrender spots', drillClose: 'Marginal cells',
       sLevel: 'Difficulty', level1: '1 – clear hands', level2: '2 – mixed', level3: '3 – boundaries and traps only',
       levelNote: 'Applies to the tricky, pairs and soft drills: at level 3 only hands where the decision flips with one dealer card are dealt (e.g. A,7 vs 8–9, 9,9 vs 7–8, 4,4 vs 4–5, A,A vs 10–A).',
-      sSpeed: 'Dealer speed', speedNormal: 'Normal', speedFast: 'Fast',
+      sSpeed: 'Dealer speed', speedNormal: 'Normal', speedFast: 'Fast', speedInstant: 'Instant',
       sAuto: 'Auto-deal the next round', sTheme: 'Theme', themeAuto: 'System', themeLight: 'Light', themeDark: 'Dark',
       sBalance: 'New balance', setBalance: 'Set', balanceNote: 'Setting a new balance restarts the session counters and the chart; decision statistics stay.',
       rEven: 'even money', rIns: 'insurance', rNoIns: 'no insurance', rWait: 'wait',
@@ -1238,9 +1257,16 @@ function buildStrategy(rulesIn) {
 
   // ---------- helpers ----------
   const $ = (id) => document.getElementById(id);
-  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const sleep = (ms) => ms > 0 ? new Promise(r => setTimeout(r, ms)) : Promise.resolve();
   const dec = () => lang === 'lt' ? ',' : '.';
-  const fmtPct = (ev) => { const v = ev * 100; const s = Math.abs(v).toFixed(1).replace('.', dec()); return (v < 0 ? '−' : v > 0 ? '+' : '') + s + ' %'; };
+  const fmtPctN = (ev, n) => { const v = ev * 100; const s = Math.abs(v).toFixed(n).replace('.', dec()); return (v < 0 ? '−' : v > 0 ? '+' : '') + s + ' %'; };
+  const fmtPct = (ev) => fmtPctN(ev, 1);
+  // two EVs side by side: add a decimal when they would otherwise look identical
+  const pctPair = (a, b) => { let sa = fmtPct(a), sb = fmtPct(b); if (sa === sb) { sa = fmtPctN(a, 2); sb = fmtPctN(b, 2); } return [sa, sb]; };
+  const fmtCost = (c) => fmtPctN(c, c < 0.01 ? 2 : 1);
+  // decisions within 0.05 % of the bet are equally good: both count as correct
+  const EQUAL_EPS = 0.0005;
+  const isOk = (cost) => cost < EQUAL_EPS;
   const fmtMoney = (n) => {
     const neg = n < 0, a = Math.abs(n);
     const [int, frac] = (Number.isInteger(a) ? a.toString() : a.toFixed(1)).split('.');
@@ -1281,7 +1307,7 @@ function buildStrategy(rulesIn) {
     advice: null, feedback: null, hintMode: 'live',
     stats: { decisions: 0, correct: 0, evLost: 0 },
     streak: { cur: 0, best: 0 },
-    settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto', flash: true, learn: false },
+    settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto', flash: true, learn: false, grading: 'table' },
     mistakes: {}, fromPool: false, cells: {},
     session: freshSession(1000),
     roundDecisions: [], autoTimer: null, flashTimer: null, drawerTab: 'settings',
@@ -1308,7 +1334,7 @@ function buildStrategy(rulesIn) {
   const CHIP_ORDER = [100, 50, 25, 10, 5];
   const decompose = (amount) => { const out = []; let left = Math.floor(amount / 5) * 5; for (const c of CHIP_ORDER) while (left >= c) { out.push(c); left -= c; } return out; };
   const betFromStack = () => { state.bet = state.betStack.reduce((a, b) => a + b, 0); };
-  const dealerDelay = () => state.settings.speed === 'fast' ? 250 : 750;
+  const dealerDelay = () => state.settings.speed === 'instant' ? 0 : state.settings.speed === 'fast' ? 250 : 750;
   function applyTheme() {
     const th = state.settings.theme;
     if (th === 'light' || th === 'dark') document.documentElement.dataset.theme = th;
@@ -1326,6 +1352,49 @@ function buildStrategy(rulesIn) {
     const [a, b] = rnd(opts);
     return [rnd(ups), a, b];
   }
+  // ---------- basic-strategy table for grading: averaged EVs of the table row ----------
+  const tableCache = new Map();
+  function rowEvs(label, upIdx) {
+    const key = label.k + ':' + label.v + '|' + upIdx;
+    if (tableCache.has(key)) return tableCache.get(key);
+    const comps = [];
+    if (label.k === 'pair') { const v = label.v.split(',')[0]; const n = v === 'A' ? 1 : +v; comps.push({ cards: [n, n], w: 1 }); }
+    else if (label.k === 'soft') { const o = +label.v - 11; if (o >= 2 && o <= 9) comps.push({ cards: [1, o], w: 1 }); }
+    else {
+      const tot = +label.v, list = [];
+      for (let a = 2; a <= 10; a++) { const b = tot - a; if (b > a && b <= 10) list.push([a, b]); }
+      if (!list.length) for (let a = 2; a <= 10; a++) if (2 * a === tot) list.push([a, a]);
+      for (const [a, b] of list) comps.push({ cards: [a, b], w: (a === 10 ? 96 : 24) * (b === 10 ? 96 : 24) });
+    }
+    let out = null;
+    if (comps.length) {
+      const ctx = getCtx(upIdx);
+      const acc = {}, present = {};
+      let W = 0;
+      for (const c of comps) {
+        const counts = new Array(10).fill(0);
+        c.cards.forEach(v => counts[v - 1]++);
+        const evs = ctx.evaluate(counts, { canDouble: true, canSplit: c.cards[0] === c.cards[1], canSurrender: true, nHands: 1 });
+        for (const k of Object.keys(evs)) { if (k === 'bust') continue; acc[k] = (acc[k] || 0) + c.w * evs[k]; present[k] = (present[k] || 0) + 1; }
+        W += c.w;
+      }
+      out = {};
+      for (const k of Object.keys(acc)) if (present[k] === comps.length) out[k] = acc[k] / W;
+    }
+    tableCache.set(key, out);
+    return out;
+  }
+  // what the printed table says for this hand vs this up card, restricted to the actions available now
+  function tableAction(label, up, allowed) {
+    if (label.key) return null;
+    const row = rowEvs(label, upValue(up) - 1);
+    if (!row) return null;
+    let best = null;
+    for (const k of allowed) if (row[k] !== undefined && (best === null || row[k] > row[best])) best = k;
+    return best;
+  }
+  const TABLE_TOL = 0.005; // options within 0.5 % of the bet are all acceptable in table grading
+
   // decision boundaries and classic traps, per category: [hand maker, dealer up cards]
   const HARD_SOFT = [
     [() => 2, [4, 5, 6, 7]], [() => 3, [4, 5, 6, 7]],          // A,2 / A,3: double only vs 5–6
@@ -1524,8 +1593,7 @@ function buildStrategy(rulesIn) {
     render();
   }
   // custom feedback keeps keys + value producers so it can be re-rendered in either language
-  function bump(cost, decision) {
-    const ok = cost <= 1e-9;
+  function bump(cost, decision, ok = isOk(cost)) {
     state.stats.decisions++;
     if (ok) {
       state.stats.correct++;
@@ -1563,7 +1631,7 @@ function buildStrategy(rulesIn) {
     const best = textKey.startsWith('em') ? 'rWait' : 'rNoIns';
     const facts = { pTen: insuranceAdvice().p };
     bump(cost, { label: { key: labelKey }, up: 'A', chosenKey: chosen, bestKey: best, cost, facts, cards: hand.cards.map(c => c.r + c.s), bet: hand.bet });
-    state.feedback = { customKey: textKey, vars, cost, label: { key: labelKey }, facts, chosenKey: chosen, bestKey: best };
+    state.feedback = { customKey: textKey, vars, cost, label: { key: labelKey }, facts, chosenKey: chosen, bestKey: best, ok: isOk(cost) };
     persist();
   }
   function recordDecision(action) {
@@ -1572,8 +1640,12 @@ function buildStrategy(rulesIn) {
     const cost = a.evs[a.best] - a.evs[action];
     const runnerEntry = Object.entries(a.evs).filter(([k]) => k !== a.best && !a.infeasible[k]).sort((x, y) => y[1] - x[1])[0];
     const runner = runnerEntry ? { action: runnerEntry[0], ev: runnerEntry[1] } : null;
-    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost, ev: a.evs[action], bev: a.evs[a.best], runner, facts: a.facts, cards: a.cards, handIdx: a.handIdx, bet: state.hands[a.handIdx] ? state.hands[a.handIdx].bet : state.bet });
-    state.feedback = { action, best: a.best, evs: a.evs, cost, label: a.label, up: a.up, infeasible: a.infeasible, facts: a.facts };
+    const allowed = Object.keys(a.evs).filter(k => !a.infeasible[k]);
+    const strict = state.settings.grading === 'exact';
+    const tableAct = strict ? null : tableAction(a.label, a.up, allowed);
+    const ok = action === a.best || cost < EQUAL_EPS || (!strict && (action === tableAct || cost < TABLE_TOL));
+    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost, ev: a.evs[action], bev: a.evs[a.best], runner, facts: a.facts, cards: a.cards, handIdx: a.handIdx, bet: state.hands[a.handIdx] ? state.hands[a.handIdx].bet : state.bet, tableAct }, ok);
+    state.feedback = { action, best: a.best, evs: a.evs, cost, label: a.label, up: a.up, infeasible: a.infeasible, facts: a.facts, tableAct, ok };
     persist();
   }
   function act(action) {
@@ -1793,12 +1865,13 @@ function buildStrategy(rulesIn) {
   function verdictLine() {
     const f = state.feedback;
     if (!f || state.hintMode !== 'after') return '';
-    const ok = f.cost <= 1e-9;
+    const ok = f.ok !== undefined ? f.ok : isOk(f.cost);
     if (f.customKey) {
       const chosen = f.customKey === 'emTaken' ? t('even') : f.customKey === 'emWait' ? t('tipWait') : f.customKey === 'insTaken' ? t('insTitle') : t('tipNoIns');
       return `<span class="${ok ? 'ok' : 'miss'}">${ok ? t('tipOk', { action: chosen }) : t('tipMiss', { best: f.customKey === 'emTaken' ? t('tipWait') : t('tipNoIns'), cost: fmtPct(f.cost) })}</span>`;
     }
-    return `<span class="${ok ? 'ok' : 'miss'}">${ok ? t('tipOk', { action: name(f.action) }) : t('tipMiss', { best: lower(name(f.best)), cost: fmtPct(f.cost) })}</span>`;
+    const okKey = f.action === f.best ? 'tipOk' : f.cost < EQUAL_EPS ? 'tipTie' : f.action === f.tableAct ? 'tipTable' : 'tipMarginal';
+    return `<span class="${ok ? 'ok' : 'miss'}">${ok ? t(okKey, { action: name(f.action), diff: fmtCost(f.cost) }) : t('tipMiss', { best: lower(name(f.best)), cost: fmtCost(f.cost) })}</span>`;
   }
 
   function renderControls() {
@@ -1893,15 +1966,19 @@ function buildStrategy(rulesIn) {
     const fb = $('feedback');
     const f = state.feedback;
     if (f && state.hintMode !== 'off') {
-      const ok = f.cost <= 1e-9;
+      const ok = f.ok !== undefined ? f.ok : isOk(f.cost);
       fb.hidden = false;
       let text;
       if (f.customKey) {
         const vars = {}; for (const [k, fn] of Object.entries(f.vars)) vars[k] = fn();
         text = t(f.customKey, vars);
       } else {
-        text = ok ? t('fbOk', { action: name(f.action) })
-          : t('fbMiss', { action: lower(name(f.action)), ev: fmtPct(f.evs[f.action]), best: lower(name(f.best)), bev: fmtPct(f.evs[f.best]), cost: fmtPct(f.cost) });
+        const [ea, eb] = pctPair(f.evs[f.action], f.evs[f.best]);
+        if (!ok) text = t('fbMiss', { action: lower(name(f.action)), ev: ea, best: lower(name(f.best)), bev: eb, cost: fmtCost(f.cost) });
+        else if (f.action === f.best) text = t('fbOk', { action: name(f.action) });
+        else if (f.cost < EQUAL_EPS) text = t('fbTie', { action: name(f.action), other: lower(name(f.best)), ev: eb, ev2: ea });
+        else if (f.action === f.tableAct) text = t('fbTable', { action: name(f.action), best: lower(name(f.best)), bev: eb, diff: fmtCost(f.cost) });
+        else text = t('fbMarginal', { action: name(f.action), best: lower(name(f.best)), bev: eb, diff: fmtCost(f.cost) });
       }
       const label = labelText(f.label) + (f.customKey ? '' : ` ${t('vs')} ${f.up}`);
       let extra = '';
@@ -1931,6 +2008,7 @@ function buildStrategy(rulesIn) {
     if (!$('drawer').classList.contains('open') || state.drawerTab === 'stats') renderAnalysis();
 
     $('set-flash').checked = state.settings.flash !== false;
+    $('set-grading').value = state.settings.grading || 'table';
     $('set-learn').checked = !!state.settings.learn;
     const pool = Object.values(state.mistakes).sort((a, b) => b.count - a.count);
     $('learn-pool').innerHTML = t('learnPool', { list: pool.length ? pool.map(m => `<b>${labelText(m.label)}${m.label.key ? '' : ' ' + t('vs') + ' ' + (m.up === '1' ? 'A' : m.up)}</b> (${m.count})`).join(', ') : t('learnEmpty') });
@@ -1990,8 +2068,8 @@ function buildStrategy(rulesIn) {
         const where = m.cards ? `<span class="cards">${multi && m.handIdx !== undefined ? t('handN', { n: m.handIdx + 1 }) + ': ' : ''}${m.cards.join(' ')}</span> ${t('vs')} ${m.up} — ` : '';
         let text;
         if (m.action) {
-          text = ok ? `✓ ${lower(name(m.action))} (${fmtPct(m.ev ?? 0)})` + (m.runner ? ` · ${t('runnerUp', { a: lower(name(m.runner.action)), ev: fmtPct(m.runner.ev) })}` : '')
-                    : `✗ ${lower(name(m.action))} (${m.ev !== undefined ? fmtPct(m.ev) : ''}) → <b>${lower(name(m.best))}</b> (${m.bev !== undefined ? fmtPct(m.bev) : ''}) <em>· ${t('cellCost', { cost: fmtPct(m.cost) })}</em>`;
+          text = ok ? `✓ ${lower(name(m.action))} (${fmtPct(m.ev ?? 0)})` + (m.action !== m.best ? ` · ${m.cost < EQUAL_EPS ? t('tieNote', { other: lower(name(m.best)), ev: fmtPct(m.bev ?? 0) }) : t('tableNote', { best: lower(name(m.best)), bev: fmtPct(m.bev ?? 0) })}` : m.runner ? ` · ${t('runnerUp', { a: lower(name(m.runner.action)), ev: fmtPct(m.runner.ev) })}` : '')
+                    : (() => { const [ea, eb] = pctPair(m.ev || 0, m.bev || 0); return `✗ ${lower(name(m.action))} (${ea}) → <b>${lower(name(m.best))}</b> (${eb}) <em>· ${t('cellCost', { cost: fmtCost(m.cost) })}</em>`; })();
         } else {
           text = ok ? `✓ ${labelText(m.label)}: ${t(m.chosenKey)}` : `✗ ${labelText(m.label)}: ${t(m.chosenKey)} → <b>${t(m.bestKey)}</b> <em>· ${t('cellCost', { cost: fmtPct(m.cost) })}</em>`;
         }
@@ -2047,7 +2125,7 @@ function buildStrategy(rulesIn) {
       if (cards) {
         const counts = new Array(10).fill(0);
         cards.forEach(c => counts[c - 1]++);
-        const letters = UP_ORDER.map(up => bestAction(getCtx(up - 1).evaluate(counts, { canDouble: true, canSplit: cards[0] === cards[1], canSurrender: true, nHands: 1 })));
+        const letters = UP_ORDER.map(up => bestAction(rowEvs(label, up - 1) || getCtx(up - 1).evaluate(counts, { canDouble: true, canSplit: cards[0] === cards[1], canSurrender: true, nHands: 1 })));
         const parts = [];
         let i = 0;
         while (i < letters.length) {
@@ -2160,6 +2238,7 @@ function buildStrategy(rulesIn) {
   $('set-speed').addEventListener('change', (e) => { state.settings.speed = e.target.value; persist(); });
   $('set-level').addEventListener('change', (e) => { state.settings.level = +e.target.value; persist(); });
   $('set-flash').addEventListener('change', (e) => { state.settings.flash = e.target.checked; persist(); });
+  $('set-grading').addEventListener('change', (e) => { state.settings.grading = e.target.value; persist(); });
   $('set-learn').addEventListener('change', (e) => { state.settings.learn = e.target.checked; persist(); render(); });
   $('clear-pool').addEventListener('click', () => { state.mistakes = {}; persist(); render(); });
   $('reset-session').addEventListener('click', () => { state.session = freshSession(state.balance); persist(); render(); });
@@ -2194,7 +2273,7 @@ function buildStrategy(rulesIn) {
 
   // test hook for local runs only: __bj.rig([{r:'A'},{r:'K'},{r:'A'}]) rigs the next deal
   // (dealer up card first, then the player's two cards, then further draws)
-  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, explain, ruleLine, renderAnalysis, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
+  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, explain, ruleLine, renderAnalysis, tableAction, rowEvs, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
   // inside the desktop app the table is bundled next to the game
   if (location.protocol === 'bjapp:') $('table-link').href = 'bjapp://app/strategija.html';
 

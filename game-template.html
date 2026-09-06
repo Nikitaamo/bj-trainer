@@ -284,6 +284,38 @@
   .rules-line b { color: var(--ink); font-weight: 600; }
   kbd { font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 12px; border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--muted); }
 
+  /* ---------- session, history, settings ---------- */
+  .streak { font-size: 12.5px; color: var(--muted); margin: 0; }
+  .streak b { color: var(--ink); font-weight: 600; }
+  .spark { width: 100%; height: 44px; display: block; }
+  details.panel { display: block; padding-top: 10px; border-top: 1px solid var(--line); }
+  details.panel summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  details.panel summary::-webkit-details-marker { display: none; }
+  details.panel summary::after { content: "+"; font-size: 16px; line-height: 1; }
+  details.panel[open] summary::after { content: "−"; }
+  details.panel > div { display: grid; gap: 8px; padding-top: 10px; }
+  .row-set { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; font-size: 13px; }
+  .row-set select, .row-set input[type="number"] { font: inherit; font-size: 13px; color: var(--ink); background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 4px 8px; max-width: 180px; }
+  .row-set input[type="number"] { width: 92px; }
+  .row-set input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold); }
+  .balance-set { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; }
+  .pill { border: 1px solid var(--line-strong); background: none; color: var(--ink); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; }
+  .pill:hover { border-color: var(--gold); }
+  .pill.primary { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .history ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 12.5px; }
+  .history li { border-top: 1px solid var(--line); padding-top: 6px; display: grid; gap: 2px; }
+  .history li:first-child { border-top: 0; padding-top: 0; }
+  .history .hr { display: flex; justify-content: space-between; gap: 8px; }
+  .history .hr b { font-weight: 600; }
+  .history .net { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .history .net.pos { color: var(--good); }
+  .history .net.neg { color: var(--bad); }
+  .history .hh { color: var(--muted); }
+  .history .miss { color: var(--bad); font-size: 12px; }
+  .bet-chips .minus { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .45); background: rgba(0, 0, 0, .2); color: var(--table-ink); font-size: 20px; line-height: 1; font-weight: 600; }
+  .bet-chips .minus:disabled { opacity: .35; cursor: not-allowed; }
+  @media (min-width: 861px) { .advisor { max-height: calc(100vh - 28px); overflow-y: auto; } }
+
   @media (hover: none) { .keys { display: none; } }
   @media (max-width: 860px) {
     .app { padding: 14px 10px 30px; }
@@ -353,11 +385,57 @@
       <div class="block">
         <span class="t" data-i18n="statsTitle">Jūsų sprendimai šioje sesijoje</span>
         <div class="stats" id="stats"></div>
+        <p class="streak" id="streak"></p>
         <div class="foot">
           <span id="stats-note"></span>
           <button class="link" id="reset-stats" type="button" data-i18n="reset">Nunulinti</button>
         </div>
       </div>
+      <div class="block">
+        <span class="t" data-i18n="session">Sesija</span>
+        <div class="stats" id="session-stats"></div>
+        <canvas class="spark" id="spark" aria-hidden="true"></canvas>
+        <p class="note" id="session-note"></p>
+      </div>
+      <details class="panel history" id="history-panel">
+        <summary data-i18n="history">Istorija</summary>
+        <div><ul id="history"></ul></div>
+      </details>
+      <details class="panel settings" id="settings-panel">
+        <summary data-i18n="settings">Nustatymai</summary>
+        <div>
+          <label class="row-set"><span data-i18n="sDeals">Dalinimai</span>
+            <select id="set-drill">
+              <option value="all" data-i18n="drillAll">Visi atsitiktiniai</option>
+              <option value="tricky" data-i18n="drillTricky">Tik sudėtingos rankos</option>
+              <option value="pairs" data-i18n="drillPairs">Tik poros</option>
+              <option value="soft" data-i18n="drillSoft">Tik minkštos rankos</option>
+              <option value="surrender" data-i18n="drillSurrender">Pasidavimo situacijos</option>
+              <option value="close" data-i18n="drillClose">Ribiniai langeliai</option>
+            </select></label>
+          <label class="row-set"><span data-i18n="sSpeed">Krupjė greitis</span>
+            <select id="set-speed">
+              <option value="normal" data-i18n="speedNormal">Įprastas</option>
+              <option value="fast" data-i18n="speedFast">Greitas</option>
+            </select></label>
+          <label class="row-set"><span data-i18n="sAuto">Automatiškai dalinti toliau</span><input type="checkbox" id="set-auto"></label>
+          <label class="row-set"><span data-i18n="sTheme">Tema</span>
+            <select id="set-theme">
+              <option value="auto" data-i18n="themeAuto">Pagal sistemą</option>
+              <option value="light" data-i18n="themeLight">Šviesi</option>
+              <option value="dark" data-i18n="themeDark">Tamsi</option>
+            </select></label>
+          <div class="row-set"><span data-i18n="sBalance">Naujas balansas</span>
+            <span class="balance-set">
+              <button class="pill" type="button" data-bal="500">500</button>
+              <button class="pill" type="button" data-bal="1000">1 000</button>
+              <button class="pill" type="button" data-bal="5000">5 000</button>
+              <input id="bal-input" type="number" min="5" step="5" inputmode="numeric" aria-label="Balansas">
+              <button class="pill primary" type="button" id="bal-set" data-i18n="setBalance">Nustatyti</button>
+            </span></div>
+          <p class="note" data-i18n="balanceNote"></p>
+        </div>
+      </details>
       <div class="foot">
         <a id="table-link" href="https://claude.ai/code/artifact/bb1adc07-f353-412c-9080-5bb381ad289b" target="_blank" rel="noopener" data-i18n="tableLink">Strategijos lentelė</a>
         <span class="keys" data-i18n="keys">Klavišai: <kbd>H</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>P</kbd> <kbd>R</kbd> <kbd>Enter</kbd></span>
@@ -431,6 +509,18 @@ __SOLVER__
       stDecisions: 'Sprendimai', stCorrect: 'Teisingi', stLost: 'Prarasta EV',
       statsNote: 'Prarasta EV – klaidų kaina, sudėta procentais nuo statymo.', statsNone: 'Kol kas sprendimų nėra.',
       handAria: 'Ranka {n}',
+      undoChip: 'Atimti paskutinį žetoną',
+      session: 'Sesija', sRounds: 'Dalinimai', sNet: 'Rezultatas', sStreak: 'Iš eilės',
+      streak: 'Teisingų sprendimų iš eilės: <b>{cur}</b> · geriausia serija <b>{best}</b>',
+      sessionNote: 'Laimėta {w} · lygiosios {p} · pralaimėta {l} · didžiausias laimėjimas {best} · didžiausias pralaimėjimas {worst}',
+      sessionEmpty: 'Grafikas rodys balanso kitimą per sesiją.',
+      history: 'Istorija', historyEmpty: 'Dar nesužaista nė vieno dalinimo.', dealerShort: 'Krupjė',
+      hMistake: '✗ {label} {vs} {up}: {action}, geriau {best} ({cost})',
+      settings: 'Nustatymai', sDeals: 'Dalinimai', drillAll: 'Visi atsitiktiniai', drillTricky: 'Tik sudėtingos rankos', drillPairs: 'Tik poros', drillSoft: 'Tik minkštos rankos', drillSurrender: 'Pasidavimo situacijos', drillClose: 'Ribiniai langeliai',
+      sSpeed: 'Krupjė greitis', speedNormal: 'Įprastas', speedFast: 'Greitas',
+      sAuto: 'Automatiškai dalinti toliau', sTheme: 'Tema', themeAuto: 'Pagal sistemą', themeLight: 'Šviesi', themeDark: 'Tamsi',
+      sBalance: 'Naujas balansas', setBalance: 'Nustatyti', balanceNote: 'Nustačius naują balansą sesijos skaitikliai ir grafikas pradedami iš naujo; sprendimų statistika lieka.',
+      rEven: 'even money', rIns: 'draudimas', rNoIns: 'be draudimo', rWait: 'laukti',
     },
     en: {
       title: 'European Black Jack trainer',
@@ -480,6 +570,18 @@ __SOLVER__
       stDecisions: 'Decisions', stCorrect: 'Correct', stLost: 'EV lost',
       statsNote: 'EV lost – the cost of mistakes, summed as % of the bet.', statsNone: 'No decisions yet.',
       handAria: 'Hand {n}',
+      undoChip: 'Remove the last chip',
+      session: 'Session', sRounds: 'Rounds', sNet: 'Net', sStreak: 'In a row',
+      streak: 'Correct decisions in a row: <b>{cur}</b> · best streak <b>{best}</b>',
+      sessionNote: 'Won {w} · push {p} · lost {l} · biggest win {best} · biggest loss {worst}',
+      sessionEmpty: 'The chart will show the balance over the session.',
+      history: 'History', historyEmpty: 'No rounds played yet.', dealerShort: 'Dealer',
+      hMistake: '✗ {label} {vs} {up}: {action}, better {best} ({cost})',
+      settings: 'Settings', sDeals: 'Deals', drillAll: 'All random', drillTricky: 'Tricky hands only', drillPairs: 'Pairs only', drillSoft: 'Soft hands only', drillSurrender: 'Surrender spots', drillClose: 'Marginal cells',
+      sSpeed: 'Dealer speed', speedNormal: 'Normal', speedFast: 'Fast',
+      sAuto: 'Auto-deal the next round', sTheme: 'Theme', themeAuto: 'System', themeLight: 'Light', themeDark: 'Dark',
+      sBalance: 'New balance', setBalance: 'Set', balanceNote: 'Setting a new balance restarts the session counters and the chart; decision statistics stay.',
+      rEven: 'even money', rIns: 'insurance', rNoIns: 'no insurance', rWait: 'wait',
     },
   };
   let lang = (() => {
@@ -532,11 +634,16 @@ __SOLVER__
   const labelText = (d) => d.key ? t(d.key) : t(d.k) + ' ' + d.v;
 
   // ---------- state ----------
+  const freshSession = (start) => ({ start, rounds: 0, wins: 0, pushes: 0, losses: 0, net: 0, best: 0, worst: 0, series: [start], history: [] });
   const state = {
-    balance: 1000, bet: 0, lastBet: 10, phase: 'bet',
+    balance: 1000, bet: 0, betStack: [], lastBet: 10, phase: 'bet',
     shoe: [], dealer: [], hands: [], active: 0, insurance: 0, insuranceResult: null,
     advice: null, feedback: null, hintMode: 'live',
     stats: { decisions: 0, correct: 0, evLost: 0 },
+    streak: { cur: 0, best: 0 },
+    settings: { drill: 'all', speed: 'normal', autoDeal: false, theme: 'auto' },
+    session: freshSession(1000),
+    roundMistakes: [], autoTimer: null,
     seen: new Set(),
   };
   try {
@@ -546,10 +653,66 @@ __SOLVER__
       if (typeof saved.lastBet === 'number') state.lastBet = saved.lastBet;
       if (saved.stats) state.stats = saved.stats;
       if (saved.hintMode) state.hintMode = saved.hintMode;
+      if (saved.streak) state.streak = saved.streak;
+      if (saved.settings) state.settings = { ...state.settings, ...saved.settings };
+      if (saved.session && Array.isArray(saved.session.series)) state.session = { ...freshSession(state.balance), ...saved.session };
     }
   } catch (e) { /* storage unavailable */ }
   function persist() {
-    try { localStorage.setItem(STORE, JSON.stringify({ balance: state.balance, lastBet: state.lastBet, stats: state.stats, hintMode: state.hintMode })); } catch (e) { /* ignore */ }
+    const sess = { ...state.session, series: state.session.series.slice(-200), history: state.session.history.slice(0, 20) };
+    try { localStorage.setItem(STORE, JSON.stringify({ balance: state.balance, lastBet: state.lastBet, stats: state.stats, hintMode: state.hintMode, streak: state.streak, settings: state.settings, session: sess })); } catch (e) { /* ignore */ }
+  }
+  const CHIP_ORDER = [100, 50, 25, 10, 5];
+  const decompose = (amount) => { const out = []; let left = Math.floor(amount / 5) * 5; for (const c of CHIP_ORDER) while (left >= c) { out.push(c); left -= c; } return out; };
+  const betFromStack = () => { state.bet = state.betStack.reduce((a, b) => a + b, 0); };
+  const dealerDelay = () => state.settings.speed === 'fast' ? 250 : 750;
+  function applyTheme() {
+    const th = state.settings.theme;
+    if (th === 'light' || th === 'dark') document.documentElement.dataset.theme = th;
+    else delete document.documentElement.dataset.theme;
+  }
+
+  // ---------- training drills: pick the first three cards on purpose ----------
+  const rnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const UPS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const pairOf = (v, ups = UPS) => [rnd(ups), v, v];
+  const softOf = (v, ups = UPS) => [rnd(ups), 1, v];
+  function hardOf(total, ups = UPS) {
+    const opts = [];
+    for (let a = 2; a <= 10; a++) { const b = total - a; if (b >= 2 && b <= 10 && a !== b) opts.push([a, b]); }
+    const [a, b] = rnd(opts);
+    return [rnd(ups), a, b];
+  }
+  function drillHand(kind) {
+    switch (kind) {
+      case 'pairs': return pairOf(rnd(UPS));
+      case 'soft': return softOf(rnd([2, 3, 4, 5, 6, 7, 8, 9]));
+      case 'surrender': {
+        const ups = [8, 9, 10, 1], r = Math.random();
+        if (r < 0.6) return hardOf(rnd([14, 15, 16]), ups);
+        return pairOf(r < 0.8 ? 7 : 8, ups);
+      }
+      case 'close': return rnd([
+        () => hardOf(9, [2]), () => hardOf(12, [4]), () => hardOf(16, [10]), () => hardOf(14, [10]), () => hardOf(16, [9]),
+        () => softOf(2, [5]), () => softOf(4, [4]), () => softOf(6, [2]), () => softOf(7, [2]), () => softOf(7, [1]),
+        () => pairOf(3, [2]), () => pairOf(8, [10]),
+      ])();
+      default: {
+        const r = Math.random();
+        if (r < 0.45) return hardOf(rnd([9, 10, 11, 12, 13, 14, 15, 16]));
+        if (r < 0.75) return softOf(rnd([2, 3, 4, 5, 6, 7, 8]));
+        return pairOf(rnd([1, 2, 3, 4, 6, 7, 8, 9]));
+      }
+    }
+  }
+  // pull a matching card out of the shoe (spec: value 1..10 or {r, s})
+  function takeCard(spec) {
+    // scan from the bottom so cards already placed on top are never picked twice
+    for (let i = 0; i < state.shoe.length; i++) {
+      const c = state.shoe[i];
+      if (spec.r ? c.r === spec.r : cardValue(c) === spec) return state.shoe.splice(i, 1)[0];
+    }
+    return { r: spec.r || (spec === 1 ? 'A' : String(spec)), s: spec.s || '♠', id: ++cardSeq };
   }
 
   // ---------- solver ----------
@@ -609,10 +772,12 @@ __SOLVER__
     state.balance -= state.bet;
     state.lastBet = state.bet;
     state.shoe = newShoe();
-    if (state.rigged) { // test hook: cards dealt next, in order
-      for (const c of state.rigged.slice().reverse()) state.shoe.push({ r: c.r, s: c.s || '♠', id: ++cardSeq });
+    if (!state.rigged && state.settings.drill !== 'all') state.rigged = drillHand(state.settings.drill);
+    if (state.rigged) { // cards dealt next, in order: dealer up card, player's two cards, further draws
+      for (const spec of state.rigged.slice().reverse()) state.shoe.push(takeCard(spec));
       state.rigged = null;
     }
+    state.roundMistakes = [];
     state.dealer = [draw()];
     state.hands = [{ cards: [draw(), draw()], bet: state.bet, done: false }];
     state.active = 0;
@@ -643,9 +808,22 @@ __SOLVER__
     render();
   }
   // custom feedback keeps keys + value producers so it can be re-rendered in either language
-  function recordCustom(cost, labelKey, textKey, vars) {
+  function bump(cost, mistake) {
     state.stats.decisions++;
-    if (cost <= 1e-9) state.stats.correct++; else state.stats.evLost += cost;
+    if (cost <= 1e-9) {
+      state.stats.correct++;
+      state.streak.cur++;
+      if (state.streak.cur > state.streak.best) state.streak.best = state.streak.cur;
+    } else {
+      state.stats.evLost += cost;
+      state.streak.cur = 0;
+      state.roundMistakes.push(mistake);
+    }
+  }
+  function recordCustom(cost, labelKey, textKey, vars) {
+    const chosen = textKey === 'emTaken' ? 'rEven' : textKey === 'emWait' ? 'rWait' : textKey === 'insTaken' ? 'rIns' : 'rNoIns';
+    const best = textKey.startsWith('em') ? 'rWait' : 'rNoIns';
+    bump(cost, { label: { key: labelKey }, up: 'A', chosenKey: chosen, bestKey: best, cost });
     state.feedback = { customKey: textKey, vars, cost, label: { key: labelKey } };
     persist();
   }
@@ -653,8 +831,7 @@ __SOLVER__
     const a = state.advice;
     if (!a || a.evs[action] === undefined) return;
     const cost = a.evs[a.best] - a.evs[action];
-    state.stats.decisions++;
-    if (cost <= 1e-9) state.stats.correct++; else state.stats.evLost += cost;
+    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost });
     state.feedback = { action, best: a.best, evs: a.evs, cost, label: a.label, up: a.up, infeasible: a.infeasible };
     persist();
   }
@@ -711,13 +888,13 @@ __SOLVER__
     render();
     const upV = cardValue(state.dealer[0]);
     const needSecond = state.insurance > 0 || state.hands.some(h => !h.busted && !h.surrendered && !(h.natural && (h.evenMoney || (upV !== 10 && upV !== 1))));
-    if (needSecond) { await sleep(750); state.dealer.push(draw()); render(); }
+    if (needSecond) { await sleep(dealerDelay()); state.dealer.push(draw()); render(); }
     const dBJ = state.dealer.length === 2 && totals(state.dealer).total === 21;
     if (!dBJ && state.hands.some(h => !h.busted && !h.natural && !h.surrendered)) {
       for (;;) {
         const tt = totals(state.dealer);
         if (tt.bust || tt.total > 17 || (tt.total === 17 && !(RULES.dealerHitsSoft17 && tt.soft))) break;
-        await sleep(750);
+        await sleep(dealerDelay());
         state.dealer.push(draw());
         render();
       }
@@ -746,13 +923,53 @@ __SOLVER__
       if (dBJ) { state.balance += 3 * state.insurance; state.insuranceResult = 'win'; } else state.insuranceResult = 'lose';
     }
     state.phase = 'result';
+    const net = roundNet();
+    const ss = state.session;
+    ss.rounds++; ss.net += net;
+    if (net > 0) ss.wins++; else if (net < 0) ss.losses++; else ss.pushes++;
+    if (net > ss.best) ss.best = net;
+    if (net < ss.worst) ss.worst = net;
+    ss.series.push(state.balance);
+    if (ss.series.length > 200) ss.series.shift();
+    ss.history.unshift({
+      dealer: state.dealer.map(c => c.r + c.s), dBJ, dBust: dt.bust, dTotal: dt.total,
+      hands: state.hands.map(h => ({ cards: h.cards.map(c => c.r + c.s), res: h.result, net: h.payout - h.bet })),
+      insurance: state.insuranceResult ? (state.insuranceResult === 'win' ? 2 * state.insurance : -state.insurance) : 0,
+      net, mistakes: state.roundMistakes.slice(),
+    });
+    if (ss.history.length > 20) ss.history.pop();
     persist();
     render();
+    if (state.settings.autoDeal && state.balance >= 5) {
+      state.autoTimer = setTimeout(() => {
+        state.autoTimer = null;
+        if (state.phase !== 'result') return;
+        newRound();
+        if (state.bet > 0) deal();
+      }, 1600);
+    }
   }
+  const roundNet = () => state.hands.reduce((sum, h) => sum + h.payout - h.bet, 0) +
+    (state.insuranceResult === 'win' ? 2 * state.insurance : state.insuranceResult === 'lose' ? -state.insurance : 0);
   function newRound() {
-    state.bet = Math.min(state.lastBet, state.balance);
+    if (state.autoTimer) { clearTimeout(state.autoTimer); state.autoTimer = null; }
+    state.betStack = decompose(Math.min(state.lastBet, state.balance));
+    betFromStack();
     state.phase = 'bet';
     state.dealer = []; state.hands = []; state.advice = null;
+    render();
+  }
+  function setBalance(v) {
+    v = Math.max(5, Math.min(1000000, Math.round(v / 5) * 5));
+    if (!Number.isFinite(v)) return;
+    if (state.autoTimer) { clearTimeout(state.autoTimer); state.autoTimer = null; }
+    state.balance = v;
+    state.session = freshSession(v);
+    state.phase = 'bet';
+    state.dealer = []; state.hands = []; state.advice = null; state.feedback = null;
+    state.betStack = decompose(Math.min(state.lastBet, v));
+    betFromStack();
+    persist();
     render();
   }
 
@@ -823,7 +1040,7 @@ __SOLVER__
         const dt = totals(state.dealer);
         const dBJ = state.dealer.length === 2 && dt.total === 21;
         const d = dBJ ? t('dBJ') : dt.bust ? t('dBust', { n: dt.hard }) : state.dealer.length === 1 ? t('dNoSecond') : t('dTotal', { n: dt.total });
-        const net = state.hands.reduce((s, h) => s + h.payout - h.bet, 0) + (state.insuranceResult === 'win' ? 2 * state.insurance : state.insuranceResult === 'lose' ? -state.insurance : 0);
+        const net = roundNet();
         const ins = state.insuranceResult ? (state.insuranceResult === 'win' ? t('insWon', { x: fmtMoney(2 * state.insurance) }) : t('insLost', { x: fmtMoney(state.insurance) })) : '';
         m.innerHTML = t('msgResult', { d, ins, net: (net > 0 ? '+' : '') + fmtMoney(net) });
         break;
@@ -848,7 +1065,8 @@ __SOLVER__
     const a = state.advice;
     if (state.phase === 'bet') {
       c.innerHTML = `<div class="bet-now">${t('betNow')} <b>${fmtMoney(state.bet)}</b></div>
-        <div class="bet-chips">${CHIPS.map(v => `<button type="button" data-chip="${v}" ${state.bet + v > state.balance ? 'disabled' : ''} aria-label="${t('addChip', { v })}"><span class="chip c${v}">${v}</span></button>`).join('')}
+        <div class="bet-chips"><button class="minus" type="button" data-act="undo-chip" ${state.betStack.length ? '' : 'disabled'} aria-label="${t('undoChip')}">−</button>
+          ${CHIPS.map(v => `<button type="button" data-chip="${v}" ${state.bet + v > state.balance ? 'disabled' : ''} aria-label="${t('addChip', { v })}"><span class="chip c${v}">${v}</span></button>`).join('')}
           <button class="ghost" type="button" data-act="clear" style="color:var(--table-ink);border-color:rgba(255,255,255,.4)">${t('clear')}</button></div>
         <div class="row"><button class="btn primary" type="button" data-act="deal" ${state.bet <= 0 || state.bet > state.balance ? 'disabled' : ''}>${t('deal')}</button></div>`;
     } else if (state.phase === 'insurance' && offerIsEvenMoney()) {
@@ -955,6 +1173,70 @@ __SOLVER__
       <div class="stat"><span class="n">${acc} %</span><span class="l">${t('stCorrect')}</span></div>
       <div class="stat"><span class="n">${(s.evLost * 100).toFixed(1).replace('.', dec())} %</span><span class="l">${t('stLost')}</span></div>`;
     $('stats-note').textContent = s.decisions ? t('statsNote') : t('statsNone');
+    $('streak').innerHTML = t('streak', { cur: state.streak.cur, best: state.streak.best });
+
+    const ss = state.session;
+    const signed = (n) => (n > 0 ? '+' : '') + fmtMoney(n);
+    $('session-stats').innerHTML = `<div class="stat"><span class="n">${ss.rounds}</span><span class="l">${t('sRounds')}</span></div>
+      <div class="stat"><span class="n" style="color:${ss.net > 0 ? 'var(--good)' : ss.net < 0 ? 'var(--bad)' : 'inherit'}">${signed(ss.net)}</span><span class="l">${t('sNet')}</span></div>
+      <div class="stat"><span class="n">${state.streak.cur}</span><span class="l">${t('sStreak')}</span></div>`;
+    $('session-note').textContent = ss.rounds ? t('sessionNote', { w: ss.wins, p: ss.pushes, l: ss.losses, best: signed(ss.best), worst: fmtMoney(ss.worst) }) : t('sessionEmpty');
+    drawSpark();
+    renderHistory();
+
+    $('set-drill').value = state.settings.drill;
+    $('set-speed').value = state.settings.speed;
+    $('set-auto').checked = state.settings.autoDeal;
+    $('set-theme').value = state.settings.theme;
+  }
+
+  function drawSpark() {
+    const c = $('spark');
+    if (!c) return;
+    const series = state.session.series;
+    const dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth || 260, h = 44;
+    c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const css = getComputedStyle(document.documentElement);
+    const color = (v) => (css.getPropertyValue(v) || '').trim();
+    const pts = series.length > 1 ? series : [series[0], series[0]];
+    const min = Math.min(...pts), max = Math.max(...pts), span = Math.max(1, max - min);
+    const x = (i) => 3 + (w - 6) * i / (pts.length - 1);
+    const y = (v) => 5 + (h - 10) * (1 - (v - min) / span);
+    const line = color(pts[pts.length - 1] >= pts[0] ? '--bar-pos' : '--bar-neg') || '#2E7D4F';
+    ctx.strokeStyle = color('--line-strong') || '#B9C4BB';
+    ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(0, y(pts[0]) + .5); ctx.lineTo(w, y(pts[0]) + .5); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x(0), y(pts[0]));
+    pts.forEach((v, i) => ctx.lineTo(x(i), y(v)));
+    ctx.lineTo(x(pts.length - 1), h); ctx.lineTo(x(0), h); ctx.closePath();
+    ctx.globalAlpha = .16; ctx.fillStyle = line; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath();
+    pts.forEach((v, i) => i ? ctx.lineTo(x(i), y(v)) : ctx.moveTo(x(i), y(v)));
+    ctx.strokeStyle = line; ctx.lineWidth = 1.6; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x(pts.length - 1), y(pts[pts.length - 1]), 2.6, 0, Math.PI * 2); ctx.fillStyle = line; ctx.fill();
+  }
+
+  function renderHistory() {
+    const list = state.session.history;
+    const el = $('history');
+    if (!list.length) { el.innerHTML = `<li class="note">${t('historyEmpty')}</li>`; return; }
+    const netCls = (n) => n > 0 ? 'pos' : n < 0 ? 'neg' : '';
+    const signed = (n) => (n > 0 ? '+' : '') + fmtMoney(n);
+    el.innerHTML = list.slice(0, 8).map(r => {
+      const dealerTotal = r.dBJ ? t('bj') : r.dBust ? t('bust', { n: r.dTotal }) : r.dealer.length === 1 ? '' : r.dTotal;
+      const hands = r.hands.map(h => `${h.cards.join(' ')} <span class="net ${netCls(h.net)}">${signed(h.net)}</span>`).join(' · ');
+      const ins = r.insurance ? ` · ${t('insTitle').toLowerCase()} <span class="net ${netCls(r.insurance)}">${signed(r.insurance)}</span>` : '';
+      const miss = r.mistakes.map(m => `<div class="miss">${t('hMistake', {
+        label: labelText(m.label), vs: t('vs'), up: m.up,
+        action: m.action ? lower(name(m.action)) : t(m.chosenKey), best: m.best ? lower(name(m.best)) : t(m.bestKey), cost: fmtPct(m.cost),
+      })}</div>`).join('');
+      return `<li><div class="hr"><span>${t('dealerShort')} ${r.dealer.join(' ')} <b>${dealerTotal}</b></span><span class="net ${netCls(r.net)}">${signed(r.net)}</span></div><div class="hh">${hands}${ins}</div>${miss}</li>`;
+    }).join('');
   }
 
   function applyLanguage() {
@@ -968,12 +1250,13 @@ __SOLVER__
   // ---------- events ----------
   $('controls').addEventListener('click', (e) => {
     const chip = e.target.closest('button[data-chip]');
-    if (chip) { const v = +chip.dataset.chip; if (state.bet + v <= state.balance) { state.bet += v; render(); } return; }
+    if (chip) { const v = +chip.dataset.chip; if (state.bet + v <= state.balance) { state.betStack.push(v); betFromStack(); render(); } return; }
     const b = e.target.closest('button[data-act]');
     if (!b || b.disabled) return;
     const act = b.dataset.act;
     if (act === 'deal') deal();
-    else if (act === 'clear') { state.bet = 0; render(); }
+    else if (act === 'clear') { state.betStack = []; betFromStack(); render(); }
+    else if (act === 'undo-chip') { state.betStack.pop(); betFromStack(); render(); }
     else if (act === 'ins-yes') answerOffer(true);
     else if (act === 'ins-no') answerOffer(false);
     else if (act === 'new') { newRound(); if (state.bet > 0) deal(); }
@@ -983,14 +1266,22 @@ __SOLVER__
   function actWith(action) { act(action); }
   $('hint-mode').addEventListener('change', (e) => { state.hintMode = e.target.value; persist(); render(); });
   $('reset-stats').addEventListener('click', () => { state.stats = { decisions: 0, correct: 0, evLost: 0 }; state.feedback = null; persist(); render(); });
-  $('topup').addEventListener('click', () => { state.balance += 1000; state.bet = Math.min(state.lastBet, state.balance); persist(); render(); });
+  $('topup').addEventListener('click', () => { state.balance += 1000; state.betStack = decompose(Math.min(state.lastBet, state.balance)); betFromStack(); persist(); render(); });
+  $('set-drill').addEventListener('change', (e) => { state.settings.drill = e.target.value; persist(); });
+  $('set-speed').addEventListener('change', (e) => { state.settings.speed = e.target.value; persist(); });
+  $('set-auto').addEventListener('change', (e) => { state.settings.autoDeal = e.target.checked; persist(); });
+  $('set-theme').addEventListener('change', (e) => { state.settings.theme = e.target.value; persist(); applyTheme(); render(); });
+  document.querySelectorAll('button[data-bal]').forEach(b => b.addEventListener('click', () => setBalance(+b.dataset.bal)));
+  $('bal-set').addEventListener('click', () => { const v = parseFloat($('bal-input').value); if (v > 0) { setBalance(v); $('bal-input').value = ''; } });
+  $('bal-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('bal-set').click(); } });
+  window.addEventListener('resize', drawSpark);
   document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => {
     lang = b.dataset.lang;
     try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
     applyLanguage();
   }));
   document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'SELECT' || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
     if (state.phase === 'play') {
       const map = { h: 'hit', s: 'stand', d: 'double', p: 'split', r: 'surrender' };
@@ -1003,11 +1294,13 @@ __SOLVER__
 
   // test hook for local runs only: __bj.rig([{r:'A'},{r:'K'},{r:'A'}]) rigs the next deal
   // (dealer up card first, then the player's two cards, then further draws)
-  if (location.protocol !== 'https:') window.__bj = { state, act, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
+  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
   // inside the desktop app the table is bundled next to the game
   if (location.protocol === 'bjapp:') $('table-link').href = 'bjapp://app/strategija.html';
 
-  state.bet = Math.min(state.lastBet, state.balance);
+  state.betStack = decompose(Math.min(state.lastBet, state.balance));
+  betFromStack();
+  applyTheme();
   applyLanguage();
 })();
 </script>

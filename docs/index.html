@@ -327,6 +327,7 @@
   .history .miss { color: var(--bad); font-size: 12px; }
   .bet-chips .minus { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .45); background: rgba(0, 0, 0, .2); color: var(--table-ink); font-size: 20px; line-height: 1; font-weight: 600; }
   .bet-chips .minus:disabled { opacity: .35; cursor: not-allowed; }
+  .bet-chips .x2 { width: auto; padding: 0 12px; font-size: 15px; font-family: "Barlow Condensed", sans-serif; letter-spacing: .04em; }
   @media (min-width: 861px) { .advisor { max-height: calc(100vh - 28px); overflow-y: auto; } }
 
   @media (hover: none) { .keys { display: none; } }
@@ -429,6 +430,13 @@
               <option value="surrender" data-i18n="drillSurrender">Pasidavimo situacijos</option>
               <option value="close" data-i18n="drillClose">Ribiniai langeliai</option>
             </select></label>
+          <label class="row-set"><span data-i18n="sLevel">Sunkumas</span>
+            <select id="set-level">
+              <option value="1" data-i18n="level1">1 – aiškios rankos</option>
+              <option value="2" data-i18n="level2">2 – mišrios</option>
+              <option value="3" data-i18n="level3">3 – tik ribos ir spąstai</option>
+            </select></label>
+          <p class="note" data-i18n="levelNote"></p>
           <label class="row-set"><span data-i18n="sSpeed">Krupjė greitis</span>
             <select id="set-speed">
               <option value="normal" data-i18n="speedNormal">Įprastas</option>
@@ -960,7 +968,7 @@ function buildStrategy(rulesIn) {
       stDecisions: 'Sprendimai', stCorrect: 'Teisingi', stLost: 'Prarasta EV',
       statsNote: 'Prarasta EV – klaidų kaina, sudėta procentais nuo statymo.', statsNone: 'Kol kas sprendimų nėra.',
       handAria: 'Ranka {n}',
-      undoChip: 'Atimti paskutinį žetoną',
+      undoChip: 'Atimti paskutinį žetoną', doubleBet: 'Dvigubinti statymą',
       session: 'Sesija', sRounds: 'Dalinimai', sNet: 'Rezultatas', sStreak: 'Iš eilės',
       streak: 'Teisingų sprendimų iš eilės: <b>{cur}</b> · geriausia serija <b>{best}</b>',
       sessionNote: 'Laimėta {w} · lygiosios {p} · pralaimėta {l} · didžiausias laimėjimas {best} · didžiausias pralaimėjimas {worst}',
@@ -968,6 +976,8 @@ function buildStrategy(rulesIn) {
       history: 'Istorija', historyEmpty: 'Dar nesužaista nė vieno dalinimo.', dealerShort: 'Krupjė',
       hMistake: '✗ {label} {vs} {up}: {action}, geriau {best} ({cost})',
       settings: 'Nustatymai', sDeals: 'Dalinimai', drillAll: 'Visi atsitiktiniai', drillTricky: 'Tik sudėtingos rankos', drillPairs: 'Tik poros', drillSoft: 'Tik minkštos rankos', drillSurrender: 'Pasidavimo situacijos', drillClose: 'Ribiniai langeliai',
+      sLevel: 'Sunkumas', level1: '1 – aiškios rankos', level2: '2 – mišrios', level3: '3 – tik ribos ir spąstai',
+      levelNote: 'Galioja režimams „sudėtingos“, „poros“ ir „minkštos“: 3 lygyje dalinamos tik rankos, kur sprendimas keičiasi nuo vienos krupjė kortos (pvz., A,7 prieš 8–9, 9,9 prieš 7–8, 4,4 prieš 4–5, A,A prieš 10–A).',
       sSpeed: 'Krupjė greitis', speedNormal: 'Įprastas', speedFast: 'Greitas',
       sAuto: 'Automatiškai dalinti toliau', sTheme: 'Tema', themeAuto: 'Pagal sistemą', themeLight: 'Šviesi', themeDark: 'Tamsi',
       sBalance: 'Naujas balansas', setBalance: 'Nustatyti', balanceNote: 'Nustačius naują balansą sesijos skaitikliai ir grafikas pradedami iš naujo; sprendimų statistika lieka.',
@@ -1021,7 +1031,7 @@ function buildStrategy(rulesIn) {
       stDecisions: 'Decisions', stCorrect: 'Correct', stLost: 'EV lost',
       statsNote: 'EV lost – the cost of mistakes, summed as % of the bet.', statsNone: 'No decisions yet.',
       handAria: 'Hand {n}',
-      undoChip: 'Remove the last chip',
+      undoChip: 'Remove the last chip', doubleBet: 'Double the bet',
       session: 'Session', sRounds: 'Rounds', sNet: 'Net', sStreak: 'In a row',
       streak: 'Correct decisions in a row: <b>{cur}</b> · best streak <b>{best}</b>',
       sessionNote: 'Won {w} · push {p} · lost {l} · biggest win {best} · biggest loss {worst}',
@@ -1029,6 +1039,8 @@ function buildStrategy(rulesIn) {
       history: 'History', historyEmpty: 'No rounds played yet.', dealerShort: 'Dealer',
       hMistake: '✗ {label} {vs} {up}: {action}, better {best} ({cost})',
       settings: 'Settings', sDeals: 'Deals', drillAll: 'All random', drillTricky: 'Tricky hands only', drillPairs: 'Pairs only', drillSoft: 'Soft hands only', drillSurrender: 'Surrender spots', drillClose: 'Marginal cells',
+      sLevel: 'Difficulty', level1: '1 – clear hands', level2: '2 – mixed', level3: '3 – boundaries and traps only',
+      levelNote: 'Applies to the tricky, pairs and soft drills: at level 3 only hands where the decision flips with one dealer card are dealt (e.g. A,7 vs 8–9, 9,9 vs 7–8, 4,4 vs 4–5, A,A vs 10–A).',
       sSpeed: 'Dealer speed', speedNormal: 'Normal', speedFast: 'Fast',
       sAuto: 'Auto-deal the next round', sTheme: 'Theme', themeAuto: 'System', themeLight: 'Light', themeDark: 'Dark',
       sBalance: 'New balance', setBalance: 'Set', balanceNote: 'Setting a new balance restarts the session counters and the chart; decision statistics stay.',
@@ -1092,7 +1104,7 @@ function buildStrategy(rulesIn) {
     advice: null, feedback: null, hintMode: 'live',
     stats: { decisions: 0, correct: 0, evLost: 0 },
     streak: { cur: 0, best: 0 },
-    settings: { drill: 'all', speed: 'normal', autoDeal: false, theme: 'auto' },
+    settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto' },
     session: freshSession(1000),
     roundMistakes: [], autoTimer: null,
     seen: new Set(),
@@ -1134,7 +1146,35 @@ function buildStrategy(rulesIn) {
     const [a, b] = rnd(opts);
     return [rnd(ups), a, b];
   }
+  // decision boundaries and classic traps, per category: [hand maker, dealer up cards]
+  const HARD_SOFT = [
+    [() => 2, [4, 5, 6, 7]], [() => 3, [4, 5, 6, 7]],          // A,2 / A,3: double only vs 5–6
+    [() => 4, [3, 4, 6, 7]], [() => 5, [3, 4, 6, 7]],          // A,4 / A,5: double vs 4–6
+    [() => 6, [2, 3, 6, 7]],                                   // A,6: hit vs 2, double vs 3–6
+    [() => 7, [2, 3, 7, 8, 9, 10, 1]],                         // A,7: stand 2/7/8, double 3–6, hit 9–A
+    [() => 8, [5, 6, 7]],                                      // A,8: always stand (tempting double)
+  ].map(([v, ups]) => () => softOf(v(), ups));
+  const HARD_PAIRS = [
+    [2, [2, 3, 7, 8]], [3, [2, 7, 8]],                         // split up to 7
+    [4, [4, 5, 6, 7]],                                         // split only vs 5–6
+    [5, [8, 9, 10, 1]],                                        // never split: double vs 9, hit vs 10/A
+    [6, [2, 6, 7, 8]],                                         // split up to 6
+    [7, [7, 8, 9, 10, 1]],                                     // split to 7, hit 8–9, surrender vs 10
+    [8, [9, 10, 1]],                                           // split vs 9, surrender vs 10, hit vs A
+    [9, [6, 7, 8, 9, 10, 1]],                                  // stand vs 7, split vs 8–9, stand 10/A
+    [10, [5, 6]],                                              // always stand
+    [1, [9, 10, 1]],                                           // split vs 10, hit vs A
+  ].map(([v, ups]) => () => pairOf(v, ups));
+  const HARD_HARD = [
+    [9, [2, 3, 7]], [10, [9, 10, 1]], [11, [9, 10, 1]], [12, [2, 3, 4, 6, 7]],
+    [13, [2, 3, 7]], [14, [7, 9, 10]], [15, [7, 9, 10, 1]], [16, [7, 8, 9, 10, 1]],
+  ].map(([tot, ups]) => () => hardOf(tot, ups));
+  const HARD_SETS = { soft: HARD_SOFT, pairs: HARD_PAIRS, tricky: [...HARD_SOFT, ...HARD_PAIRS, ...HARD_HARD] };
+
   function drillHand(kind) {
+    const lvl = +state.settings.level || 3;
+    const hard = HARD_SETS[kind];
+    if (hard && (lvl === 3 || (lvl === 2 && Math.random() < 0.5))) return rnd(hard)();
     switch (kind) {
       case 'pairs': return pairOf(rnd(UPS));
       case 'soft': return softOf(rnd([2, 3, 4, 5, 6, 7, 8, 9]));
@@ -1518,6 +1558,7 @@ function buildStrategy(rulesIn) {
       c.innerHTML = `<div class="bet-now">${t('betNow')} <b>${fmtMoney(state.bet)}</b></div>
         <div class="bet-chips"><button class="minus" type="button" data-act="undo-chip" ${state.betStack.length ? '' : 'disabled'} aria-label="${t('undoChip')}">−</button>
           ${CHIPS.map(v => `<button type="button" data-chip="${v}" ${state.bet + v > state.balance ? 'disabled' : ''} aria-label="${t('addChip', { v })}"><span class="chip c${v}">${v}</span></button>`).join('')}
+          <button class="minus x2" type="button" data-act="double-bet" ${state.bet > 0 && state.bet < state.balance ? '' : 'disabled'} aria-label="${t('doubleBet')}">×2</button>
           <button class="ghost" type="button" data-act="clear" style="color:var(--table-ink);border-color:rgba(255,255,255,.4)">${t('clear')}</button></div>
         <div class="row"><button class="btn primary" type="button" data-act="deal" ${state.bet <= 0 || state.bet > state.balance ? 'disabled' : ''}>${t('deal')}</button></div>`;
     } else if (state.phase === 'insurance' && offerIsEvenMoney()) {
@@ -1636,6 +1677,7 @@ function buildStrategy(rulesIn) {
     renderHistory();
 
     $('set-drill').value = state.settings.drill;
+    $('set-level').value = String(state.settings.level);
     $('set-speed').value = state.settings.speed;
     $('set-auto').checked = state.settings.autoDeal;
     $('set-theme').value = state.settings.theme;
@@ -1708,6 +1750,7 @@ function buildStrategy(rulesIn) {
     if (act === 'deal') deal();
     else if (act === 'clear') { state.betStack = []; betFromStack(); render(); }
     else if (act === 'undo-chip') { state.betStack.pop(); betFromStack(); render(); }
+    else if (act === 'double-bet') { const nb = Math.min(state.bet * 2, Math.floor(state.balance / 5) * 5); state.betStack = decompose(nb); betFromStack(); render(); }
     else if (act === 'ins-yes') answerOffer(true);
     else if (act === 'ins-no') answerOffer(false);
     else if (act === 'new') { newRound(); if (state.bet > 0) deal(); }
@@ -1720,6 +1763,7 @@ function buildStrategy(rulesIn) {
   $('topup').addEventListener('click', () => { state.balance += 1000; state.betStack = decompose(Math.min(state.lastBet, state.balance)); betFromStack(); persist(); render(); });
   $('set-drill').addEventListener('change', (e) => { state.settings.drill = e.target.value; persist(); });
   $('set-speed').addEventListener('change', (e) => { state.settings.speed = e.target.value; persist(); });
+  $('set-level').addEventListener('change', (e) => { state.settings.level = +e.target.value; persist(); });
   $('set-auto').addEventListener('change', (e) => { state.settings.autoDeal = e.target.checked; persist(); });
   $('set-theme').addEventListener('change', (e) => { state.settings.theme = e.target.value; persist(); applyTheme(); render(); });
   document.querySelectorAll('button[data-bal]').forEach(b => b.addEventListener('click', () => setBalance(+b.dataset.bal)));

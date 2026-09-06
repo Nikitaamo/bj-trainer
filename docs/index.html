@@ -366,6 +366,27 @@
   .history .dec.miss { color: var(--bad); }
   .history .dec em { font-style: normal; color: var(--muted); }
 
+  .analysis { display: grid; gap: 6px; font-size: 12.5px; }
+  .analysis details { border-top: 1px solid var(--line); padding-top: 6px; }
+  .analysis details:first-child { border-top: 0; padding-top: 0; }
+  .analysis summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 8px; }
+  .analysis summary::-webkit-details-marker { display: none; }
+  .analysis summary b { font-weight: 600; }
+  .analysis summary .cnt { font-family: "Barlow Condensed", sans-serif; font-weight: 600; color: var(--bad); white-space: nowrap; }
+  .analysis details > div { padding: 4px 0 4px; display: grid; gap: 4px; color: var(--muted); }
+  .analysis details > div b { color: var(--ink); font-weight: 600; }
+  .analysis table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .analysis th, .analysis td { text-align: right; padding: 3px 4px; border-bottom: 1px solid var(--line); font-weight: 500; }
+  .analysis th:first-child, .analysis td:first-child { text-align: left; }
+  .analysis th { font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .analysis .pat { display: grid; gap: 2px; border-top: 1px solid var(--line); padding-top: 6px; }
+  .analysis .pat:first-child { border-top: 0; padding-top: 0; }
+  .analysis .pat .hd { display: flex; justify-content: space-between; gap: 8px; }
+  .analysis .pat .hd b { font-weight: 600; }
+  .analysis .pat .adv { color: var(--muted); }
+  .history .why, .feedback .why { color: var(--muted); font-size: 12.5px; }
+  .history .dec .cards { font-family: "Barlow Condensed", sans-serif; font-weight: 600; color: var(--ink); }
+
   /* ---------- decision flash ---------- */
   .flash { position: fixed; inset: 0; pointer-events: none; z-index: 30; opacity: 0; transition: opacity .35s ease; }
   .flash.ok { opacity: 1; box-shadow: inset 0 0 0 6px var(--good), inset 0 0 90px rgba(46, 125, 79, .55); transition-duration: .08s; }
@@ -552,6 +573,15 @@
     <canvas class="spark" id="spark" aria-hidden="true"></canvas>
     <p class="note" id="session-note"></p>
     <div><button class="pill" id="reset-session" type="button" data-i18n="resetSession">Pradėti sesiją iš naujo</button></div>
+    <div class="sep"></div>
+    <span class="t" data-i18n="topMistakes">Dažniausios klaidos</span>
+    <div id="top-mistakes" class="analysis"></div>
+    <div class="sep"></div>
+    <span class="t" data-i18n="byCategory">Pagal kategoriją</span>
+    <div id="by-category" class="analysis"></div>
+    <div class="sep"></div>
+    <span class="t" data-i18n="patterns">Klaidų tipai</span>
+    <div id="patterns" class="analysis"></div>
   </section>
 </aside>
 
@@ -1058,6 +1088,37 @@ function buildStrategy(rulesIn) {
       sHints: 'Patarimai', sLang: 'Kalba', sFlash: 'Spalvų signalas po sprendimo', training: 'Treniruotė',
       historyHint: 'Naujausi dalinimai viršuje. Spustelėkite dalinimą, kad pamatytumėte visus jo sprendimus.',
       roundN: 'Dalinimas {n}', resetSession: 'Pradėti sesiją iš naujo',
+      why: 'Kodėl', how: 'Kaip elgtis', runnerUp: 'antras variantas {a} ({ev})', handN: 'Ranka {n}', betN: 'statymas {b}',
+      xIns: 'Draudimas ir even money apsimoka tik kai dešimtuko tikimybė viršija 33,3 %, o dabar ji {p}. Ilgainiui tai pralaimintis statymas.',
+      xSurrender: 'Su {total} prieš {up} bet koks žaidimas vidutiniškai praranda daugiau nei pusę statymo ({ev}). Pasidavimas fiksuoja −50 %.',
+      xStandNotHit: 'Krupjė su {up} viršija {bust} atvejų. Imant su {total} patys viršytumėte {pbust} atvejų – leiskite rizikuoti krupjė.',
+      xHitNotStand: 'Krupjė su {up} viršija tik {bust} atvejų, todėl stovint su {total} dažniausiai pralaimite. Imant viršijate {pbust} atvejų – rizika apsimoka.',
+      xHitSoft: 'Minkšta {total} viena korta viršyti negali, o prieš {up} stovint ({ev}) esate per silpnas – imkite.',
+      xDouble: 'Čia turite pranašumą: {bev} su dvigubu statymu. Krupjė su {up} viršija {bust} atvejų, o jums užtenka vienos kortos; {chosen} duoda tik {ev}.',
+      xNoDoubleStrong: 'Prieš {up} krupjė Black Jack tikimybė {pbj}, o BJ paima ir padvigubintą statymą. Papildomi pinigai ant stalo kainuoja daugiau, nei duoda.',
+      xNoDouble: 'Dvigubinant gaunate tik vieną kortą; su šia ranka prieš {up} to per mažai ({ev} vs {bev}).',
+      xSplit: 'Dvi rankos nuo {one} prieš {up} vertos daugiau nei viena {total} ({bev} vs {ev}).',
+      xNoSplitStrong: 'Prieš {up} krupjė Black Jack tikimybė {pbj}, o BJ paimtų abu statymus – skelti per brangu.',
+      xNoSplit: 'Skeliant {pair} prieš {up} abi rankos prasideda silpnai. Geriau {best} ({bev} vs {ev}).',
+      xNoSurrender: 'Pasidavimas fiksuoja −50 %, o {best} vidutiniškai duoda {bev} – ranka dar ne tokia bloga.',
+      xGeneric: 'Geriausias veiksmas {best} ({bev}), jūsų {chosen} ({ev}).',
+      ruleIns: 'Draudimo ir even money neimkite niekada: 6 kaladėse dešimtuko tikimybė apie 31 %, o reikia 33,3 %.',
+      ruleVs: '{a} prieš {r}',
+      topMistakes: 'Dažniausios klaidos', noMistakes: 'Klaidų dar nėra.', cellCnt: '{m} iš {n}', cellCost: 'kaina {cost}',
+      youUsually: 'Jūs dažniausiai: <b>{a}</b> · teisinga: <b>{b}</b>',
+      byCategory: 'Pagal kategoriją', catHard: 'Kietos rankos', catSoft: 'Minkštos rankos', catPair: 'Poros', catIns: 'Draudimas / even money',
+      colDecisions: 'Sprendimai', colCorrect: 'Teisingi', colLost: 'Prarasta EV', noData: 'Dar nėra duomenų.',
+      patterns: 'Klaidų tipai', noPatterns: 'Klaidų dar nėra.',
+      pat_stand_hit: 'Stovite, kai reikia imti', adv_stand_hit: 'Su 12–16 prieš 7–A ir minkštais 17–18 prieš 9–A imkite: krupjė su stipria korta viršija retai.',
+      pat_hit_stand: 'Imate, kai reikia stovėti', adv_hit_stand: 'Su 13–16 prieš 2–6 ir 12 prieš 4–6 stovėkite: leiskite krupjė viršyti.',
+      pat_nodouble: 'Nedvigubinate, kai verta', adv_nodouble: '9 prieš 3–6, 10 prieš 2–9, 11 prieš 2–9 ir minkštus 13–18 prieš silpną kortą dvigubinkite.',
+      pat_double: 'Dvigubinate per drąsiai', adv_double: 'Prieš 10 ir A nedvigubinkite: krupjė Black Jack paima ir padvigubintą statymą.',
+      pat_nosurrender: 'Nepasiduodate, kai verta', adv_nosurrender: '14–16 prieš 10, 16 prieš 9, taip pat 7,7 ir 8,8 prieš 10 pasiduokite – pusė statymo grąžinama iš karto.',
+      pat_surrender: 'Pasiduodate per anksti', adv_surrender: 'Pasiduokite tik su 14–16 prieš 10 ir 16 prieš 9.',
+      pat_nosplit: 'Neskeliate, kai verta', adv_nosplit: 'A,A ir 8,8 skelkite (ne prieš A ir ne 8,8 prieš 10), 2,2/3,3/7,7 prieš 2–7, 6,6 prieš 2–6, 9,9 prieš 2–6 ir 8–9.',
+      pat_split: 'Skeliate per dažnai', adv_split: '5,5 ir 10,10 neskelkite, 4,4 tik prieš 5–6, A,A ir 8,8 neskelkite prieš A.',
+      pat_ins: 'Imate draudimą arba even money', adv_ins: 'Niekada neimkite: statymas pralaimintis ilgainiui.',
+      pat_other: 'Kitos klaidos', adv_other: 'Pažiūrėkite istorijoje, kur ir kodėl suklydote.',
       sLearn: 'Mokytis iš klaidų', learnNote: 'Rankos, kuriose suklydote, dalinamos dažniau (maždaug kas antrą kartą), kol jas du kartus iš eilės sužaisite teisingai. Kai sąrašas ištuštėja, vėl dalinamos visos rankos.',
       learnPool: 'Šiuo metu mokoma: {list}', learnEmpty: 'klaidų sąrašas tuščias', clearPool: 'Išvalyti klaidų sąrašą', fromPool: 'iš klaidų sąrašo',
       dOk: '✓ {label} {vs} {up}: {action} ({ev})', dMiss: '✗ {label} {vs} {up}: {action} ({ev}), geriau {best} ({bev}) <em>· kaina {cost}</em>',
@@ -1129,6 +1190,37 @@ function buildStrategy(rulesIn) {
       sHints: 'Hints', sLang: 'Language', sFlash: 'Colour flash after a decision', training: 'Training',
       historyHint: 'Newest rounds first. Tap a round to see all of its decisions.',
       roundN: 'Round {n}', resetSession: 'Restart the session',
+      why: 'Why', how: 'How to play it', runnerUp: 'runner-up {a} ({ev})', handN: 'Hand {n}', betN: 'bet {b}',
+      xIns: 'Insurance and even money only pay when the chance of a ten exceeds 33.3 %; right now it is {p}. In the long run it is a losing bet.',
+      xSurrender: 'With {total} against {up} any play loses more than half the bet on average ({ev}). Surrender locks in −50 %.',
+      xStandNotHit: 'The dealer busts {bust} of the time with {up}. Hitting {total} you would bust {pbust} of the time – let the dealer take the risk.',
+      xHitNotStand: 'The dealer busts only {bust} of the time with {up}, so standing on {total} usually loses. Hitting busts {pbust} of the time – the risk pays.',
+      xHitSoft: 'Soft {total} cannot bust on one card, and standing against {up} ({ev}) is too weak – hit.',
+      xDouble: 'You have the edge here: {bev} with the doubled bet. The dealer busts {bust} of the time with {up} and one card is all you need; {chosen} gives only {ev}.',
+      xNoDoubleStrong: 'Against {up} the dealer makes Black Jack {pbj} of the time and takes the doubled bet too. Extra money on the table costs more than it earns.',
+      xNoDouble: 'Doubling gives you a single card; with this hand against {up} that is not enough ({ev} vs {bev}).',
+      xSplit: 'Two hands starting from {one} against {up} are worth more than one {total} ({bev} vs {ev}).',
+      xNoSplitStrong: 'Against {up} the dealer makes Black Jack {pbj} of the time and would take both bets – splitting is too expensive.',
+      xNoSplit: 'Splitting {pair} against {up} starts two weak hands. {best} is better ({bev} vs {ev}).',
+      xNoSurrender: 'Surrender locks in −50 %, while {best} averages {bev} – the hand is not that bad yet.',
+      xGeneric: 'The best action is {best} ({bev}); yours was {chosen} ({ev}).',
+      ruleIns: 'Never take insurance or even money: in 6 decks the chance of a ten is about 31 %, and 33.3 % is needed.',
+      ruleVs: '{a} vs {r}',
+      topMistakes: 'Most frequent mistakes', noMistakes: 'No mistakes yet.', cellCnt: '{m} of {n}', cellCost: 'cost {cost}',
+      youUsually: 'You usually: <b>{a}</b> · correct: <b>{b}</b>',
+      byCategory: 'By category', catHard: 'Hard hands', catSoft: 'Soft hands', catPair: 'Pairs', catIns: 'Insurance / even money',
+      colDecisions: 'Decisions', colCorrect: 'Correct', colLost: 'EV lost', noData: 'No data yet.',
+      patterns: 'Types of mistakes', noPatterns: 'No mistakes yet.',
+      pat_stand_hit: 'Standing when you should hit', adv_stand_hit: 'Hit 12–16 against 7–A and soft 17–18 against 9–A: a strong dealer card rarely busts.',
+      pat_hit_stand: 'Hitting when you should stand', adv_hit_stand: 'Stand on 13–16 against 2–6 and on 12 against 4–6: let the dealer bust.',
+      pat_nodouble: 'Not doubling when it pays', adv_nodouble: 'Double 9 against 3–6, 10 against 2–9, 11 against 2–9 and soft 13–18 against a weak card.',
+      pat_double: 'Doubling too boldly', adv_double: 'Never double against 10 or A: a dealer Black Jack takes the doubled bet too.',
+      pat_nosurrender: 'Not surrendering when it pays', adv_nosurrender: 'Surrender 14–16 against 10, 16 against 9, and 7,7 / 8,8 against 10 – half the bet comes back at once.',
+      pat_surrender: 'Surrendering too early', adv_surrender: 'Surrender only 14–16 against 10 and 16 against 9.',
+      pat_nosplit: 'Not splitting when it pays', adv_nosplit: 'Split A,A and 8,8 (not against A, and not 8,8 against 10), 2,2/3,3/7,7 against 2–7, 6,6 against 2–6, 9,9 against 2–6 and 8–9.',
+      pat_split: 'Splitting too often', adv_split: 'Never split 5,5 or 10,10; 4,4 only against 5–6; A,A and 8,8 not against A.',
+      pat_ins: 'Taking insurance or even money', adv_ins: 'Never take it: a losing bet in the long run.',
+      pat_other: 'Other mistakes', adv_other: 'Check the history to see where and why.',
       sLearn: 'Learn from mistakes', learnNote: 'Hands you got wrong are dealt more often (about every second deal) until you play them correctly twice in a row. When the list is empty, all hands are dealt again.',
       learnPool: 'Currently practising: {list}', learnEmpty: 'no mistakes queued', clearPool: 'Clear the mistake list', fromPool: 'from the mistake list',
       dOk: '✓ {label} {vs} {up}: {action} ({ev})', dMiss: '✗ {label} {vs} {up}: {action} ({ev}), better {best} ({bev}) <em>· cost {cost}</em>',
@@ -1206,7 +1298,7 @@ function buildStrategy(rulesIn) {
     stats: { decisions: 0, correct: 0, evLost: 0 },
     streak: { cur: 0, best: 0 },
     settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto', flash: true, learn: false },
-    mistakes: {}, fromPool: false,
+    mistakes: {}, fromPool: false, cells: {},
     session: freshSession(1000),
     roundDecisions: [], autoTimer: null, flashTimer: null, drawerTab: 'settings',
     seen: new Set(),
@@ -1220,13 +1312,14 @@ function buildStrategy(rulesIn) {
       if (saved.hintMode) state.hintMode = saved.hintMode;
       if (saved.streak) state.streak = saved.streak;
       if (saved.mistakes && typeof saved.mistakes === 'object') state.mistakes = saved.mistakes;
+      if (saved.cells && typeof saved.cells === 'object') state.cells = saved.cells;
       if (saved.settings) state.settings = { ...state.settings, ...saved.settings };
       if (saved.session && Array.isArray(saved.session.series)) state.session = { ...freshSession(state.balance), ...saved.session };
     }
   } catch (e) { /* storage unavailable */ }
   function persist() {
     const sess = { ...state.session, series: state.session.series.slice(-200), history: state.session.history.slice(0, 50) };
-    try { localStorage.setItem(STORE, JSON.stringify({ balance: state.balance, lastBet: state.lastBet, stats: state.stats, hintMode: state.hintMode, streak: state.streak, settings: state.settings, session: sess, mistakes: state.mistakes })); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(STORE, JSON.stringify({ balance: state.balance, lastBet: state.lastBet, stats: state.stats, hintMode: state.hintMode, streak: state.streak, settings: state.settings, session: sess, mistakes: state.mistakes, cells: state.cells })); } catch (e) { /* ignore */ }
   }
   const CHIP_ORDER = [100, 50, 25, 10, 5];
   const decompose = (amount) => { const out = []; let left = Math.floor(amount / 5) * 5; for (const c of CHIP_ORDER) while (left >= c) { out.push(c); left -= c; } return out; };
@@ -1367,6 +1460,16 @@ function buildStrategy(rulesIn) {
       extra, canDouble: canDouble(hand), canSplit: canSplit(hand), canSurrender: canSurrender(hand), nHands: state.hands.length, isSplitAces: hand.fromAces,
     });
     if (evs.bust) return null;
+    // facts for explanations: dealer bust / BJ chance, own bust chance on the next card
+    const D = ctx.dealerRaw(countsOf(hand.cards), extra);
+    const left = new Array(10).fill(0);
+    for (let r = 0; r < 10; r++) left[r] = (r === 9 ? 16 : 4) * RULES.decks;
+    for (const c of state.dealer) left[cardValue(c) - 1]--;
+    for (const h of state.hands) for (const c of h.cards) left[cardValue(c) - 1]--;
+    const tt = totals(hand.cards);
+    let bustCards = 0, all = 0;
+    for (let r = 0; r < 10; r++) { all += left[r]; if (tt.hard + r + 1 > 21) bustCards += left[r]; }
+    const facts = { dealerBust: D[6], pBJ: D[5], pBust: all ? bustCards / all : 0, total: tt.total, soft: tt.soft };
     const infeasible = {};
     if (evs.double !== undefined && state.balance < hand.bet) infeasible.double = 'noFunds';
     if (evs.split !== undefined && state.balance < hand.bet) infeasible.split = 'noFunds';
@@ -1375,7 +1478,7 @@ function buildStrategy(rulesIn) {
       if (bestAll === null || evs[k] > evs[bestAll]) bestAll = k;
       if (!infeasible[k] && (best === null || evs[k] > evs[best])) best = k;
     }
-    return { evs, best, bestAll, infeasible, label: handLabelData(hand.cards), up: state.dealer[0].r };
+    return { evs, best, bestAll, infeasible, label: handLabelData(hand.cards), up: state.dealer[0].r, facts, cards: hand.cards.map(c => c.r + c.s), handIdx: state.active };
   }
   // probability that the dealer's second card is a ten, given the visible cards
   function insuranceAdvice() {
@@ -1450,6 +1553,12 @@ function buildStrategy(rulesIn) {
     }
     state.roundDecisions.push({ ...decision, ok });
     noteDecision(decision.label, decision.up, ok);
+    const ck = mistakeKey(decision.label, decision.up);
+    const cell = state.cells[ck] || { label: decision.label, up: String(upValue(decision.up)), attempts: 0, mistakes: 0, cost: 0, chosen: {} };
+    cell.attempts++;
+    cell.best = decision.best || decision.bestKey;
+    if (!ok) { cell.mistakes++; cell.cost += cost; const a = decision.action || decision.chosenKey; cell.chosen[a] = (cell.chosen[a] || 0) + 1; cell.lastEv = decision.ev; cell.lastBev = decision.bev; cell.facts = decision.facts; }
+    state.cells[ck] = cell;
     flash(ok);
   }
   // green / red glow around the screen and the table after every decision
@@ -1465,18 +1574,22 @@ function buildStrategy(rulesIn) {
     state.flashTimer = setTimeout(() => { $('flash').classList.remove('ok', 'miss'); $('table').classList.remove('ok', 'miss'); }, 900);
   }
   function recordCustom(cost, labelKey, textKey, vars) {
+    const hand = state.hands[0];
     const chosen = textKey === 'emTaken' ? 'rEven' : textKey === 'emWait' ? 'rWait' : textKey === 'insTaken' ? 'rIns' : 'rNoIns';
     const best = textKey.startsWith('em') ? 'rWait' : 'rNoIns';
-    bump(cost, { label: { key: labelKey }, up: 'A', chosenKey: chosen, bestKey: best, cost });
-    state.feedback = { customKey: textKey, vars, cost, label: { key: labelKey } };
+    const facts = { pTen: insuranceAdvice().p };
+    bump(cost, { label: { key: labelKey }, up: 'A', chosenKey: chosen, bestKey: best, cost, facts, cards: hand.cards.map(c => c.r + c.s), bet: hand.bet });
+    state.feedback = { customKey: textKey, vars, cost, label: { key: labelKey }, facts, chosenKey: chosen, bestKey: best };
     persist();
   }
   function recordDecision(action) {
     const a = state.advice;
     if (!a || a.evs[action] === undefined) return;
     const cost = a.evs[a.best] - a.evs[action];
-    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost, ev: a.evs[action], bev: a.evs[a.best] });
-    state.feedback = { action, best: a.best, evs: a.evs, cost, label: a.label, up: a.up, infeasible: a.infeasible };
+    const runnerEntry = Object.entries(a.evs).filter(([k]) => k !== a.best && !a.infeasible[k]).sort((x, y) => y[1] - x[1])[0];
+    const runner = runnerEntry ? { action: runnerEntry[0], ev: runnerEntry[1] } : null;
+    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost, ev: a.evs[action], bev: a.evs[a.best], runner, facts: a.facts, cards: a.cards, handIdx: a.handIdx, bet: state.hands[a.handIdx] ? state.hands[a.handIdx].bet : state.bet });
+    state.feedback = { action, best: a.best, evs: a.evs, cost, label: a.label, up: a.up, infeasible: a.infeasible, facts: a.facts };
     persist();
   }
   function act(action) {
@@ -1575,7 +1688,7 @@ function buildStrategy(rulesIn) {
     if (net < ss.worst) ss.worst = net;
     ss.series.push(state.balance);
     if (ss.series.length > 200) ss.series.shift();
-    ss.history.unshift({ n: ss.rounds,
+    ss.history.unshift({ n: ss.rounds, bet: state.lastBet,
       dealer: state.dealer.map(c => c.r + c.s), dBJ, dBust: dt.bust, dTotal: dt.total,
       hands: state.hands.map(h => ({ cards: h.cards.map(c => c.r + c.s), res: h.result, net: h.payout - h.bet })),
       insurance: state.insuranceResult ? (state.insuranceResult === 'win' ? 2 * state.insurance : -state.insurance) : 0,
@@ -1807,8 +1920,11 @@ function buildStrategy(rulesIn) {
           : t('fbMiss', { action: lower(name(f.action)), ev: fmtPct(f.evs[f.action]), best: lower(name(f.best)), bev: fmtPct(f.evs[f.best]), cost: fmtPct(f.cost) });
       }
       const label = labelText(f.label) + (f.customKey ? '' : ` ${t('vs')} ${f.up}`);
+      let extra = '';
+      if (!ok) extra = `<p class="why"><b>${t('why')}:</b> ${explain(f.customKey ? f : { ...f, ev: f.evs[f.action], bev: f.evs[f.best] })}</p>`;
+      else if (!f.customKey) { const ru = Object.entries(f.evs).filter(([k]) => k !== f.best).sort((x, y) => y[1] - x[1])[0]; if (ru) extra = `<p class="why">${t('runnerUp', { a: lower(name(ru[0])), ev: fmtPct(ru[1]) })}</p>`; }
       fb.innerHTML = `<span class="t">${t('lastDecision', { label })}</span>
-        <div class="feedback"><span class="mark ${ok ? 'ok' : 'miss'}">${ok ? '✓' : '✗'}</span><p>${text}</p></div>
+        <div class="feedback"><span class="mark ${ok ? 'ok' : 'miss'}">${ok ? '✓' : '✗'}</span><p>${text}</p></div>${extra}
         ${state.hintMode === 'after' && f.evs ? barsHTML(f.evs, f.best, f.infeasible) : ''}`;
     } else { fb.hidden = true; fb.innerHTML = ''; }
 
@@ -1828,6 +1944,7 @@ function buildStrategy(rulesIn) {
     $('session-note').textContent = ss.rounds ? t('sessionNote', { w: ss.wins, p: ss.pushes, l: ss.losses, best: signed(ss.best), worst: fmtMoney(ss.worst) }) : t('sessionEmpty');
     drawSpark();
     renderHistory();
+    if (!$('drawer').classList.contains('open') || state.drawerTab === 'stats') renderAnalysis();
 
     $('set-flash').checked = state.settings.flash !== false;
     $('set-learn').checked = !!state.settings.learn;
@@ -1883,22 +2000,123 @@ function buildStrategy(rulesIn) {
       const dealerTotal = r.dBJ ? t('bj') : r.dBust ? t('bust', { n: r.dTotal }) : r.dealer.length === 1 ? '' : r.dTotal;
       const hands = r.hands.map(h => `${h.cards.join(' ')} <span class="net ${netCls(h.net)}">${signed(h.net)}</span>`).join(' · ');
       const ins = r.insurance ? ` · ${lower(t('insTitle'))} <span class="net ${netCls(r.insurance)}">${signed(r.insurance)}</span>` : '';
-      const decisions = (r.decisions || r.mistakes || []).map(m => {
+      const multi = r.hands.length > 1;
+      const decisions = (r.decisions || r.mistakes || []).map((m, di) => {
         const ok = m.ok !== undefined ? m.ok : false;
+        const where = m.cards ? `<span class="cards">${multi && m.handIdx !== undefined ? t('handN', { n: m.handIdx + 1 }) + ': ' : ''}${m.cards.join(' ')}</span> ${t('vs')} ${m.up} — ` : '';
         let text;
         if (m.action) {
-          text = ok ? t('dOk', { label: labelText(m.label), vs: t('vs'), up: m.up, action: lower(name(m.action)), ev: fmtPct(m.ev ?? 0) })
-                    : t('dMiss', { label: labelText(m.label), vs: t('vs'), up: m.up, action: lower(name(m.action)), ev: m.ev !== undefined ? fmtPct(m.ev) : '', best: lower(name(m.best)), bev: m.bev !== undefined ? fmtPct(m.bev) : '', cost: fmtPct(m.cost) });
+          text = ok ? `✓ ${lower(name(m.action))} (${fmtPct(m.ev ?? 0)})` + (m.runner ? ` · ${t('runnerUp', { a: lower(name(m.runner.action)), ev: fmtPct(m.runner.ev) })}` : '')
+                    : `✗ ${lower(name(m.action))} (${m.ev !== undefined ? fmtPct(m.ev) : ''}) → <b>${lower(name(m.best))}</b> (${m.bev !== undefined ? fmtPct(m.bev) : ''}) <em>· ${t('cellCost', { cost: fmtPct(m.cost) })}</em>`;
         } else {
-          text = ok ? t('dOkC', { label: labelText(m.label), action: t(m.chosenKey) })
-                    : t('dMissC', { label: labelText(m.label), action: t(m.chosenKey), best: t(m.bestKey), cost: fmtPct(m.cost) });
+          text = ok ? `✓ ${labelText(m.label)}: ${t(m.chosenKey)}` : `✗ ${labelText(m.label)}: ${t(m.chosenKey)} → <b>${t(m.bestKey)}</b> <em>· ${t('cellCost', { cost: fmtPct(m.cost) })}</em>`;
         }
-        return `<div class="dec ${ok ? 'ok' : 'miss'}">${text}</div>`;
+        const why = !ok ? `<div class="why">${t('why')}: ${explain(m)}</div>` : '';
+        return `<div class="dec ${ok ? 'ok' : 'miss'}">${di + 1}. ${where}${text}</div>${why}`;
       }).join('');
       const misses = (r.decisions || r.mistakes || []).filter(m => m.ok === false || m.ok === undefined).length;
-      return `<details${i === 0 ? ' open' : ''}><summary><span><span class="n">${t('roundN', { n: r.n || list.length - i })}</span>${t('dealerShort')} ${r.dealer.join(' ')} <b>${dealerTotal}</b>${misses ? ` <span class="net neg">✗${misses}</span>` : ''}</span><span class="net ${netCls(r.net)}">${signed(r.net)}</span></summary>
+      return `<details${i === 0 ? ' open' : ''}><summary><span><span class="n">${t('roundN', { n: r.n || list.length - i })}${r.bet ? ' · ' + t('betN', { b: fmtMoney(r.bet) }) : ''}</span>${t('dealerShort')} ${r.dealer.join(' ')} <b>${dealerTotal}</b>${misses ? ` <span class="net neg">✗${misses}</span>` : ''}</span><span class="net ${netCls(r.net)}">${signed(r.net)}</span></summary>
         <div><div class="hh">${hands}${ins}</div>${decisions}</div></details>`;
     }).join('');
+  }
+
+  // ---------- explanations ----------
+  const pct0 = (x) => Math.round((x || 0) * 100) + ' %';
+  const upName = (up) => { const v = upValue(up); return v === 1 ? 'A' : String(v); };
+  const actName = (d, key) => d[key] ? lower(name(d[key])) : (key === 'action' ? t(d.chosenKey) : t(d.bestKey));
+  function explain(d) {
+    const f = d.facts || {};
+    if (d.chosenKey) return t('xIns', { p: fmtPct(f.pTen || 0).replace('+', '') });
+    const up = upName(d.up), upV = upValue(d.up);
+    const total = f.total !== undefined ? f.total : d.label.v;
+    const v = { up, total, ev: fmtPct(d.ev), bev: fmtPct(d.bev), chosen: actName(d, 'action'), best: actName(d, 'best'),
+      bust: pct0(f.dealerBust), pbust: pct0(f.pBust), pbj: pct0(f.pBJ), pair: d.label.v, one: d.label.k === 'pair' ? d.label.v.split(',')[0] : '' };
+    const strong = upV === 10 || upV === 1;
+    if (d.best === 'surrender') return t('xSurrender', v);
+    if (d.best === 'stand' && d.action === 'hit') return t('xStandNotHit', v);
+    if (d.best === 'hit' && d.action === 'stand') return f.soft ? t('xHitSoft', v) : t('xHitNotStand', v);
+    if (d.best === 'double') return t('xDouble', v);
+    if (d.action === 'double') return strong ? t('xNoDoubleStrong', v) : t('xNoDouble', v);
+    if (d.best === 'split') return t('xSplit', v);
+    if (d.action === 'split') return strong && f.pBJ > 0.05 ? t('xNoSplitStrong', v) : t('xNoSplit', v);
+    if (d.action === 'surrender') return t('xNoSurrender', v);
+    return t('xGeneric', v);
+  }
+  // "how to play it": the whole row of the strategy table for this hand, computed by the solver
+  const ruleCache = new Map();
+  const UP_ORDER = [2, 3, 4, 5, 6, 7, 8, 9, 10, 1];
+  function repCards(label) {
+    if (label.k === 'pair') { const v = label.v.split(',')[0]; const n = v === 'A' ? 1 : +v; return [n, n]; }
+    if (label.k === 'soft') { const o = +label.v - 11; return o >= 2 && o <= 9 ? [1, o] : null; }
+    const tot = +label.v;
+    if (tot >= 12 && tot <= 19) return [10, tot - 10];
+    if (tot >= 5 && tot <= 11) return [2, tot - 2];
+    return null;
+  }
+  function ruleLine(label) {
+    const key = (label.key ? label.key : label.k + ':' + label.v) + '|' + lang;
+    if (ruleCache.has(key)) return ruleCache.get(key);
+    let text = '';
+    if (label.key) text = t('ruleIns');
+    else {
+      const cards = repCards(label);
+      if (cards) {
+        const counts = new Array(10).fill(0);
+        cards.forEach(c => counts[c - 1]++);
+        const letters = UP_ORDER.map(up => bestAction(getCtx(up - 1).evaluate(counts, { canDouble: true, canSplit: cards[0] === cards[1], canSurrender: true, nHands: 1 })));
+        const parts = [];
+        let i = 0;
+        while (i < letters.length) {
+          let j = i;
+          while (j + 1 < letters.length && letters[j + 1] === letters[i]) j++;
+          const a = UP_ORDER[i] === 1 ? 'A' : String(UP_ORDER[i]), b = UP_ORDER[j] === 1 ? 'A' : String(UP_ORDER[j]);
+          parts.push(t('ruleVs', { a: lower(name(letters[i])), r: i === j ? a : a + '–' + b }));
+          i = j + 1;
+        }
+        text = labelText(label) + ': ' + parts.join(', ');
+      }
+    }
+    ruleCache.set(key, text);
+    return text;
+  }
+  const catOf = (label) => label.key ? 'ins' : label.k === 'pair' ? 'pair' : label.k;
+  function patternOf(chosen, best) {
+    if (chosen === 'rIns' || chosen === 'rEven') return 'ins';
+    if (best === 'split') return 'nosplit';
+    if (chosen === 'split') return 'split';
+    if (best === 'surrender') return 'nosurrender';
+    if (chosen === 'surrender') return 'surrender';
+    if (best === 'double') return 'nodouble';
+    if (chosen === 'double') return 'double';
+    if (chosen === 'stand' && best === 'hit') return 'stand_hit';
+    if (chosen === 'hit' && best === 'stand') return 'hit_stand';
+    return 'other';
+  }
+  function renderAnalysis() {
+    const cells = Object.values(state.cells);
+    const cellLabel = (c) => labelText(c.label) + (c.label.key ? '' : ' ' + t('vs') + ' ' + (c.up === '1' ? 'A' : c.up));
+    const actText = (a) => a === 'rIns' || a === 'rEven' || a === 'rWait' || a === 'rNoIns' ? t(a) : lower(name(a));
+    // most frequent mistakes
+    const bad = cells.filter(c => c.mistakes > 0).sort((a, b) => b.mistakes - a.mistakes || b.cost - a.cost).slice(0, 8);
+    $('top-mistakes').innerHTML = bad.length ? bad.map((c, i) => {
+      const usual = Object.entries(c.chosen).sort((a, b) => b[1] - a[1])[0];
+      const sample = { label: c.label, up: c.up, action: c.label.key ? undefined : usual[0], chosenKey: c.label.key ? usual[0] : undefined, best: c.label.key ? undefined : c.best, bestKey: c.label.key ? c.best : undefined, ev: c.lastEv, bev: c.lastBev, facts: c.facts || {} };
+      return `<details${i === 0 ? ' open' : ''}><summary><b>${cellLabel(c)}</b><span class="cnt">${t('cellCnt', { m: c.mistakes, n: c.attempts })} · ${t('cellCost', { cost: fmtPct(c.cost) })}</span></summary>
+        <div><div>${t('youUsually', { a: actText(usual[0]), b: actText(c.best) })}</div>
+        <div><b>${t('why')}:</b> ${explain(sample)}</div>
+        <div><b>${t('how')}:</b> ${ruleLine(c.label)}</div></div></details>`;
+    }).join('') : `<p class="note">${t('noMistakes')}</p>`;
+    // by category
+    const cats = { hard: [0, 0, 0], soft: [0, 0, 0], pair: [0, 0, 0], ins: [0, 0, 0] };
+    for (const c of cells) { const k = catOf(c.label); cats[k][0] += c.attempts; cats[k][1] += c.mistakes; cats[k][2] += c.cost; }
+    const rows = Object.entries(cats).filter(([, v]) => v[0] > 0);
+    $('by-category').innerHTML = rows.length ? `<table><thead><tr><th></th><th>${t('colDecisions')}</th><th>${t('colCorrect')}</th><th>${t('colLost')}</th></tr></thead><tbody>` +
+      rows.map(([k, v]) => `<tr><td>${t('cat' + k.charAt(0).toUpperCase() + k.slice(1))}</td><td>${v[0]}</td><td>${Math.round(100 * (v[0] - v[1]) / v[0])} %</td><td>${fmtPct(v[2]).replace('+', '')}</td></tr>`).join('') + '</tbody></table>' : `<p class="note">${t('noData')}</p>`;
+    // patterns
+    const pats = {};
+    for (const c of cells) for (const [a, n] of Object.entries(c.chosen)) { const pk = patternOf(a, c.best); pats[pk] = (pats[pk] || 0) + n; }
+    const plist = Object.entries(pats).sort((a, b) => b[1] - a[1]);
+    $('patterns').innerHTML = plist.length ? plist.map(([k, n]) => `<div class="pat"><div class="hd"><b>${t('pat_' + k)}</b><span class="cnt">${n}</span></div><div class="adv">${t('adv_' + k)}</div></div>`).join('') : `<p class="note">${t('noPatterns')}</p>`;
   }
 
   // ---------- side menu ----------
@@ -1921,7 +2139,7 @@ function buildStrategy(rulesIn) {
     state.drawerTab = tab;
     document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
     document.querySelectorAll('.tabpanel').forEach(p => { p.hidden = p.dataset.panel !== tab; });
-    if (tab === 'stats') drawSpark();
+    if (tab === 'stats') { drawSpark(); renderAnalysis(); }
   }
 
   function applyLanguage() {
@@ -1952,7 +2170,7 @@ function buildStrategy(rulesIn) {
   });
   function actWith(action) { act(action); }
   document.querySelectorAll('.hint-mode-select').forEach(el => el.addEventListener('change', (e) => { state.hintMode = e.target.value; persist(); render(); }));
-  $('reset-stats').addEventListener('click', () => { state.stats = { decisions: 0, correct: 0, evLost: 0 }; state.feedback = null; persist(); render(); });
+  $('reset-stats').addEventListener('click', () => { state.stats = { decisions: 0, correct: 0, evLost: 0 }; state.streak = { cur: 0, best: 0 }; state.cells = {}; state.feedback = null; persist(); render(); });
   $('topup').addEventListener('click', () => { state.balance += 1000; state.betStack = decompose(Math.min(state.lastBet, state.balance)); betFromStack(); persist(); render(); });
   $('set-drill').addEventListener('change', (e) => { state.settings.drill = e.target.value; persist(); });
   $('set-speed').addEventListener('change', (e) => { state.settings.speed = e.target.value; persist(); });
@@ -1992,7 +2210,7 @@ function buildStrategy(rulesIn) {
 
   // test hook for local runs only: __bj.rig([{r:'A'},{r:'K'},{r:'A'}]) rigs the next deal
   // (dealer up card first, then the player's two cards, then further draws)
-  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
+  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, explain, ruleLine, renderAnalysis, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
   // inside the desktop app the table is bundled next to the game
   if (location.protocol === 'bjapp:') $('table-link').href = 'bjapp://app/strategija.html';
 

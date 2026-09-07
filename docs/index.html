@@ -444,9 +444,42 @@
       min-height: 0; gap: 8px; overflow: hidden;
     }
     .dealer-area, .message, .spots, .status, .controls { flex: none; }
-    .hands { flex: 1; min-height: 0; overflow-y: auto; align-content: flex-start; }
+    .hands { flex: 1; min-height: 0; overflow-y: auto; justify-content: center; align-content: center; gap: 2px 6px; }
     .message { min-height: 0; font-size: 14px; }
-    .controls { gap: 8px; }
+    .controls { gap: 4px; }
+    .dealer-area { gap: 3px; }
+    .dealer-area .card { width: 56px; height: 78px; }
+    .dealer-area .card + .card { margin-left: -22px; }
+    .dealer-area .cards { min-height: 80px; }
+    /* several hands: smaller cards so every hand stays on screen */
+    .hands[data-n="2"] .card { width: 56px; height: 78px; }
+    .hands[data-n="2"] .card + .card { margin-left: -24px; }
+    .hands[data-n="2"] .card .idx { font-size: 17px; }
+    .hands[data-n="2"] .card .pip { font-size: 28px; }
+    .hands[data-n="2"] .cards { min-height: 80px; }
+    .hands[data-n="3"] .card { width: 48px; height: 68px; border-radius: 6px; }
+    .hands[data-n="3"] .card + .card { margin-left: -21px; }
+    .hands[data-n="3"] .card .idx { font-size: 15px; top: 3px; left: 4px; }
+    .hands[data-n="3"] .card .idx i { font-size: 12px; }
+    .hands[data-n="3"] .card .idx.b { right: 4px; bottom: 3px; }
+    .hands[data-n="3"] .card .pip { font-size: 22px; }
+    .hands[data-n="3"] .cards { min-height: 70px; }
+    .hands[data-n="3"] .hand { padding: 2px 3px 1px; gap: 2px; border-radius: 10px; }
+    .hands[data-n="3"] .hand .meta { font-size: 11.5px; gap: 4px; }
+    .hands[data-n="3"] .hand .meta .t { font-size: 18px; }
+    .hands[data-n="3"] .chip.small { width: 24px; height: 24px; font-size: 10px; }
+    .hands[data-n="3"] .result-tag { font-size: 12px; padding: 1px 7px; }
+    .spots { gap: 12px; padding: 2px 0 0; }
+    .spot { width: 56px; height: 56px; font-size: 17px; }
+    .spot .spot-n { font-size: 10px; top: -8px; }
+    .spot:not(.has) .spot-amt { font-size: 22px; }
+    .spot .spot-delta { bottom: -10px; font-size: 11px; padding: 0 7px; }
+    .spots.payout { padding-bottom: 6px; }
+    .status { padding-top: 2px; font-size: 13px; }
+    .status b { font-size: 20px; }
+    .bet-chips { gap: 6px; }
+    .chip { width: 36px; height: 36px; font-size: 13px; }
+    .bet-chips .minus { width: 30px; height: 30px; font-size: 18px; }
     .app { padding: 14px 10px 30px; }
     .app { padding: calc(8px + env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
     .layout { grid-template-columns: 1fr; gap: 14px; }
@@ -1358,10 +1391,16 @@ function buildStrategy(rulesIn) {
   }
   const countsOf = (cards) => { const a = new Array(10).fill(0); for (const c of cards) a[cardValue(c) - 1]++; return a; };
   let cardSeq = 0;
+  // uniform random number in [0, 1) from the browser's cryptographic generator (Math.random as a fallback)
+  const rand01 = () => {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296; }
+    return Math.random();
+  };
+  // a fresh 6-deck shoe every round (312 cards), Fisher–Yates shuffled; dealer and players draw from its top
   function newShoe() {
     const cards = [];
     for (let d = 0; d < RULES.decks; d++) for (const s of SUITS) for (const r of RANKS) cards.push({ r, s, id: ++cardSeq });
-    for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
+    for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(rand01() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
     return cards;
   }
   // language-independent description of a hand, rendered with labelText()
@@ -1430,7 +1469,7 @@ function buildStrategy(rulesIn) {
   }
 
   // ---------- training drills: pick the first three cards on purpose ----------
-  const rnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const rnd = (arr) => arr[Math.floor(rand01() * arr.length)];
   const UPS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const pairOf = (v, ups = UPS) => [rnd(ups), v, v];
   const softOf = (v, ups = UPS) => [rnd(ups), 1, v];
@@ -1924,6 +1963,7 @@ function buildStrategy(rulesIn) {
     $('dealer-cards').innerHTML = state.dealer.map(cardHTML).join('') + (showSlot ? `<div class="card slot">${t('slot')}</div>` : '');
     $('dealer-total').innerHTML = state.dealer.length ? totalText(state.dealer, { dealer: true }) : '';
 
+    $('hands').dataset.n = String(Math.min(3, Math.max(1, state.hands.length)));
     $('hands').innerHTML = state.hands.map((h, i) => {
       const active = (state.phase === 'play' && i === state.active && !h.done) || (state.phase === 'insurance' && h === offerHand());
       const dim = state.phase === 'play' && !active && h.done && !h.natural;

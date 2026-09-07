@@ -731,6 +731,13 @@
 })();
 </script>
 
-<script>try { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js'); } catch (e) { /* no offline support */ }</script>
+<script>try {
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('./sw.js');
+    // a new version took over: tell the game so it can reload between rounds
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) window.dispatchEvent(new Event('bj-update')); });
+  }
+} catch (e) { /* no offline support */ }</script>
 </body>
 </html>

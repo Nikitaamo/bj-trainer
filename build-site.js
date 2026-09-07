@@ -31,7 +31,14 @@ const HEAD = (title) => `<meta charset="utf-8">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">`;
 
-const SW_REG = `<script>try { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js'); } catch (e) { /* no offline support */ }</script>`;
+const SW_REG = `<script>try {
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('./sw.js');
+    // a new version took over: tell the game so it can reload between rounds
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) window.dispatchEvent(new Event('bj-update')); });
+  }
+} catch (e) { /* no offline support */ }</script>`;
 
 // the root pages are body fragments (title + style + markup); wrap them in a full document
 function toDocument(fragment, { nav = '' } = {}) {

@@ -1811,6 +1811,7 @@ function buildStrategy(rulesIn) {
   const roundNet = () => state.hands.reduce((sum, h) => sum + h.payout - h.bet + (h.insurancePay || 0) - (h.insurance || 0), 0);
   const insuranceNet = () => state.hands.reduce((sum, h) => sum + (h.insurancePay || 0) - (h.insurance || 0), 0);
   function newRound() {
+    if (state.pendingUpdate) { location.reload(); return; }
     if (state.autoTimer) { clearTimeout(state.autoTimer); state.autoTimer = null; }
     const maxBet = Math.floor(state.balance / boxCount() / 5) * 5;
     if (!state.betStack.length || state.bet > maxBet) state.betStack = decompose(Math.min(state.lastBet, maxBet));
@@ -2337,6 +2338,12 @@ function buildStrategy(rulesIn) {
     else if (state.phase === 'insurance' && k === 'y') { e.preventDefault(); answerOffer(true); }
   });
 
+  // a newer version was installed by the service worker: reload as soon as no round is in progress
+  window.addEventListener('bj-update', () => {
+    if (state.phase === 'bet' || state.phase === 'result') location.reload();
+    else state.pendingUpdate = true;
+  });
+
   // test hook for local runs only: __bj.rig([{r:'A'},{r:'K'},{r:'A'}]) rigs the next deal
   // (dealer up card first, then the player's two cards, then further draws)
   if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, explain, ruleLine, renderAnalysis, tableAction, rowEvs, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
@@ -2350,6 +2357,13 @@ function buildStrategy(rulesIn) {
 })();
 </script>
 
-<script>try { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js'); } catch (e) { /* no offline support */ }</script>
+<script>try {
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('./sw.js');
+    // a new version took over: tell the game so it can reload between rounds
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) window.dispatchEvent(new Event('bj-update')); });
+  }
+} catch (e) { /* no offline support */ }</script>
 </body>
 </html>

@@ -1360,6 +1360,7 @@ __SOLVER__
   const roundNet = () => state.hands.reduce((sum, h) => sum + h.payout - h.bet + (h.insurancePay || 0) - (h.insurance || 0), 0);
   const insuranceNet = () => state.hands.reduce((sum, h) => sum + (h.insurancePay || 0) - (h.insurance || 0), 0);
   function newRound() {
+    if (state.pendingUpdate) { location.reload(); return; }
     if (state.autoTimer) { clearTimeout(state.autoTimer); state.autoTimer = null; }
     const maxBet = Math.floor(state.balance / boxCount() / 5) * 5;
     if (!state.betStack.length || state.bet > maxBet) state.betStack = decompose(Math.min(state.lastBet, maxBet));
@@ -1884,6 +1885,12 @@ __SOLVER__
     else if (state.phase === 'result' && e.key === 'Enter') { e.preventDefault(); newRound(); if (state.bet > 0) deal(); }
     else if (state.phase === 'insurance' && (k === 'n' || e.key === 'Enter')) { e.preventDefault(); answerOffer(false); }
     else if (state.phase === 'insurance' && k === 'y') { e.preventDefault(); answerOffer(true); }
+  });
+
+  // a newer version was installed by the service worker: reload as soon as no round is in progress
+  window.addEventListener('bj-update', () => {
+    if (state.phase === 'bet' || state.phase === 'result') location.reload();
+    else state.pendingUpdate = true;
   });
 
   // test hook for local runs only: __bj.rig([{r:'A'},{r:'K'},{r:'A'}]) rigs the next deal

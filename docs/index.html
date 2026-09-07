@@ -231,6 +231,13 @@
   .spot.has { border-style: solid; border-color: rgba(255, 255, 255, .55); background: radial-gradient(circle, rgba(184, 137, 43, .35) 0 58%, rgba(0, 0, 0, .15) 60%); }
   .spot.active { box-shadow: 0 0 0 3px var(--gold-bright), 0 6px 16px rgba(0, 0, 0, .35); transform: translateY(-2px); }
   .spot:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+  .spot.win { border-style: solid; border-color: var(--good); background: radial-gradient(circle, rgba(46, 125, 79, .45) 0 58%, rgba(0, 0, 0, .15) 60%); color: #CFF3DA; }
+  .spot.lose { border-style: solid; border-color: var(--bad); background: radial-gradient(circle, rgba(179, 38, 30, .35) 0 58%, rgba(0, 0, 0, .15) 60%); color: #F5B9AD; }
+  .spot.push { border-style: solid; border-color: rgba(255, 255, 255, .6); }
+  .spot .spot-delta { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 12px; letter-spacing: .04em; padding: 1px 8px; border-radius: 999px; background: var(--table-deep); color: var(--table-ink); white-space: nowrap; }
+  .spot.win .spot-delta { color: #BFF0D0; }
+  .spot.lose .spot-delta { color: #F5B9AD; }
+  .spots.payout { padding-bottom: 10px; }
   .bet-chips button.sel .chip { box-shadow: 0 0 0 3px var(--gold-bright), 0 2px 4px rgba(0, 0, 0, .4), inset 0 0 0 2px #F3E9CF; transform: translateY(-3px); }
   @media (max-width: 860px) { .spots { gap: 14px; } .spot { width: 68px; height: 68px; font-size: 19px; } }
 
@@ -1124,7 +1131,7 @@ function buildStrategy(rulesIn) {
       statsNote: 'Prarasta EV – klaidų kaina, sudėta procentais nuo statymo.', statsNone: 'Kol kas sprendimų nėra.',
       handAria: 'Ranka {n}',
       undoChip: 'Atimti paskutinį žetoną', doubleBet: 'Dvigubinti statymą',
-      onTable: 'Ant stalo', spotsN: '{n} vietos', spotAria: 'Vieta {n}: statymas {b}', spotEmpty: 'Vieta {n}: tuščia, spauskite ir padėkite žetoną', spotHint: 'Pasirinkite žetoną ir spauskite vietą ant stalo. Kiek vietų su statymu, tiek rankų gausite.', insuranceLbl: 'Draudimas',
+      onTable: 'Ant stalo', spotResult: 'Vieta {n}: grąžinta {p} ({d})', spotsN: '{n} vietos', spotAria: 'Vieta {n}: statymas {b}', spotEmpty: 'Vieta {n}: tuščia, spauskite ir padėkite žetoną', spotHint: 'Pasirinkite žetoną ir spauskite vietą ant stalo. Kiek vietų su statymu, tiek rankų gausite.', insuranceLbl: 'Draudimas',
       menu: 'Meniu', close: 'Uždaryti', tabSettings: 'Nustatymai', tabHistory: 'Istorija', tabStats: 'Statistika', more: 'Daugiau…',
       sHints: 'Patarimai', sLang: 'Kalba', sFlash: 'Spalvų signalas po sprendimo', training: 'Treniruotė',
       historyHint: 'Naujausi dalinimai viršuje. Spustelėkite dalinimą, kad pamatytumėte visus jo sprendimus.',
@@ -1233,7 +1240,7 @@ function buildStrategy(rulesIn) {
       statsNote: 'EV lost – the cost of mistakes, summed as % of the bet.', statsNone: 'No decisions yet.',
       handAria: 'Hand {n}',
       undoChip: 'Remove the last chip', doubleBet: 'Double the bet',
-      onTable: 'On the table', spotsN: '{n} spots', spotAria: 'Spot {n}: bet {b}', spotEmpty: 'Spot {n}: empty, tap to place a chip', spotHint: 'Pick a chip and tap a spot on the table. Every spot with a bet gets a hand.', insuranceLbl: 'Insurance',
+      onTable: 'On the table', spotResult: 'Spot {n}: returned {p} ({d})', spotsN: '{n} spots', spotAria: 'Spot {n}: bet {b}', spotEmpty: 'Spot {n}: empty, tap to place a chip', spotHint: 'Pick a chip and tap a spot on the table. Every spot with a bet gets a hand.', insuranceLbl: 'Insurance',
       menu: 'Menu', close: 'Close', tabSettings: 'Settings', tabHistory: 'History', tabStats: 'Statistics', more: 'More…',
       sHints: 'Hints', sLang: 'Language', sFlash: 'Colour flash after a decision', training: 'Training',
       historyHint: 'Newest rounds first. Tap a round to see all of its decisions.',
@@ -1355,7 +1362,7 @@ function buildStrategy(rulesIn) {
     stats: { decisions: 0, correct: 0, evLost: 0 },
     streak: { cur: 0, best: 0 },
     settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto', flash: true, learn: false, grading: 'table' },
-    offerList: [0], offerIdx: 0,
+    offerList: [0], offerIdx: 0, showPayout: false,
     mistakes: {}, fromPool: false, cells: {},
     session: freshSession(1000),
     roundDecisions: [], autoTimer: null, flashTimer: null, drawerTab: 'settings',
@@ -1805,6 +1812,7 @@ function buildStrategy(rulesIn) {
       if (h.insurance > 0) { insured = true; h.insurancePay = dBJ ? 3 * h.insurance : 0; state.balance += h.insurancePay; }
     }
     state.insuranceResult = insured ? (dBJ ? 'win' : 'lose') : null;
+    state.showPayout = true;
     state.phase = 'result';
     const net = roundNet();
     const ss = state.session;
@@ -1836,6 +1844,7 @@ function buildStrategy(rulesIn) {
   const insuranceNet = () => state.hands.reduce((sum, h) => sum + (h.insurancePay || 0) - (h.insurance || 0), 0);
   function newRound() {
     if (state.pendingUpdate) { location.reload(); return; }
+    state.showPayout = false;
     if (state.autoTimer) { clearTimeout(state.autoTimer); state.autoTimer = null; }
     if (betCount() === 0) state.spots[state.activeSpot] = decompose(Math.min(state.lastBet, state.balance));
     trimSpots();
@@ -1906,8 +1915,20 @@ function buildStrategy(rulesIn) {
     const spotsEl = $('spots');
     spotsEl.hidden = !betting;
     if (betting) {
+      const payout = state.phase === 'result' && state.showPayout;
+      spotsEl.classList.toggle('payout', payout);
       spotsEl.innerHTML = state.spots.map((st, i) => {
         const b = spotBet(i);
+        const hs = payout ? boxHands(i) : [];
+        if (hs.length) {
+          // what came back to this spot: bets returned plus winnings, insurance included
+          const paid = hs.reduce((sum, h) => sum + (h.payout || 0) + (h.insurancePay || 0), 0);
+          const staked = hs.reduce((sum, h) => sum + h.bet + (h.insurance || 0), 0);
+          const d = paid - staked;
+          const cls = d > 0 ? 'win' : d < 0 ? 'lose' : 'push';
+          const dtxt = d > 0 ? '+' + fmtMoney(d) : d < 0 ? fmtMoney(d) : '=';
+          return `<div class="spot has ${cls}${i === state.activeSpot ? ' active' : ''}" data-spot="${i}" role="button" tabindex="0" aria-label="${t('spotResult', { n: i + 1, p: fmtMoney(paid), d: dtxt })}"><span class="spot-n">${i + 1}</span><span class="spot-amt">${fmtMoney(paid)}</span><span class="spot-delta">${dtxt}</span></div>`;
+        }
         return `<div class="spot${b ? ' has' : ''}${i === state.activeSpot ? ' active' : ''}" data-spot="${i}" role="button" tabindex="0" aria-label="${b ? t('spotAria', { n: i + 1, b: fmtMoney(b) }) : t('spotEmpty', { n: i + 1 })}"><span class="spot-n">${i + 1}</span><span class="spot-amt">${b ? fmtMoney(b) : '+'}</span></div>`;
       }).join('');
     }
@@ -2314,14 +2335,14 @@ function buildStrategy(rulesIn) {
   // ---------- events ----------
   $('controls').addEventListener('click', (e) => {
     const chip = e.target.closest('button[data-chip]');
-    if (chip) { const v = +chip.dataset.chip; state.chip = v; if (totalBet() + v <= state.balance) { state.spots[state.activeSpot].push(v); betFromStack(); } persist(); render(); return; }
+    if (chip) { const v = +chip.dataset.chip; state.chip = v; state.showPayout = false; if (totalBet() + v <= state.balance) { state.spots[state.activeSpot].push(v); betFromStack(); } persist(); render(); return; }
     const b = e.target.closest('button[data-act]');
     if (!b || b.disabled) return;
     const act = b.dataset.act;
     if (act === 'deal') deal();
-    else if (act === 'clear') { if (state.spots[state.activeSpot].length) state.spots[state.activeSpot] = []; else state.spots = [[], [], []]; betFromStack(); persist(); render(); }
-    else if (act === 'undo-chip') { state.spots[state.activeSpot].pop(); betFromStack(); persist(); render(); }
-    else if (act === 'double-bet') { const i = state.activeSpot; const room = state.balance - (totalBet() - spotBet(i)); state.spots[i] = decompose(Math.min(spotBet(i) * 2, Math.floor(room / 5) * 5)); betFromStack(); persist(); render(); }
+    else if (act === 'clear') { state.showPayout = false; if (state.spots[state.activeSpot].length) state.spots[state.activeSpot] = []; else state.spots = [[], [], []]; betFromStack(); persist(); render(); }
+    else if (act === 'undo-chip') { state.showPayout = false; state.spots[state.activeSpot].pop(); betFromStack(); persist(); render(); }
+    else if (act === 'double-bet') { state.showPayout = false; const i = state.activeSpot; const room = state.balance - (totalBet() - spotBet(i)); state.spots[i] = decompose(Math.min(spotBet(i) * 2, Math.floor(room / 5) * 5)); betFromStack(); persist(); render(); }
     else if (act === 'ins-yes') answerOffer(true);
     else if (act === 'ins-no') answerOffer(false);
     else if (act === 'new') { newRound(); if (state.bet > 0) deal(); }
@@ -2332,6 +2353,7 @@ function buildStrategy(rulesIn) {
   function pickSpot(i) {
     if (!(state.phase === 'bet' || state.phase === 'result')) return;
     state.activeSpot = i;
+    state.showPayout = false;
     if (spotBet(i) === 0 && totalBet() + state.chip <= state.balance) state.spots[i].push(state.chip);
     betFromStack(); persist(); render();
   }

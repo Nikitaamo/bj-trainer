@@ -142,11 +142,11 @@
   .dealer-area { display: grid; gap: 8px; justify-items: center; text-align: center; }
   .dealer-area .area-label { justify-content: center; }
 
-  .cards { display: flex; min-height: 92px; padding-left: 0; }
+  .cards { display: flex; min-height: 104px; padding-left: 0; }
   .card {
     position: relative;
-    width: 64px; height: 90px;
-    border-radius: 7px;
+    width: 72px; height: 102px;
+    border-radius: 8px;
     background: var(--cardface);
     color: var(--cardface-ink);
     box-shadow: 0 1px 1px rgba(0, 0, 0, .25), 0 6px 14px -4px rgba(0, 0, 0, .45);
@@ -154,12 +154,12 @@
     font-weight: 700;
     flex: none;
   }
-  .card + .card { margin-left: -24px; }
+  .card + .card { margin-left: -26px; }
   .card.red { color: var(--cardface-red); }
-  .card .idx { position: absolute; top: 5px; left: 7px; font-size: 17px; line-height: 1; display: grid; justify-items: center; }
-  .card .idx i { font-style: normal; font-size: 13px; margin-top: 1px; }
+  .card .idx { position: absolute; top: 5px; left: 7px; font-size: 21px; line-height: 1; display: grid; justify-items: center; }
+  .card .idx i { font-style: normal; font-size: 16px; margin-top: 1px; }
   .card .idx.b { top: auto; left: auto; right: 7px; bottom: 5px; transform: rotate(180deg); }
-  .card .pip { position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; }
+  .card .pip { position: absolute; inset: 0; display: grid; place-items: center; font-size: 38px; }
   .card.slot { background: rgba(255, 255, 255, .06); border: 2px dashed rgba(255, 255, 255, .35); box-shadow: none; color: var(--table-muted); display: grid; place-items: center; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; text-align: center; line-height: 1.2; padding: 6px; }
   @keyframes deal { from { transform: translateY(-26px) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
   .card.deal { animation: deal .32s cubic-bezier(.2, .7, .3, 1) both; }
@@ -178,7 +178,7 @@
   .hand.active { border-color: var(--gold-bright); background: rgba(0, 0, 0, .12); }
   .hand.dim { opacity: .62; }
   .hand .meta { display: flex; align-items: center; gap: 8px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .04em; color: var(--table-muted); }
-  .hand .meta .t { font-family: "Bodoni Moda", serif; font-size: 20px; letter-spacing: 0; color: var(--table-ink); }
+  .hand .meta .t { font-family: "Bodoni Moda", serif; font-size: 23px; letter-spacing: 0; color: var(--table-ink); }
   .hand .meta .t.bad { color: #F0A090; }
   .hand .meta .t.bj { color: var(--gold-bright); }
   .chip {
@@ -201,6 +201,11 @@
   .result-tag.lose { color: #F5B9AD; }
   .result-tag.push { color: var(--table-muted); }
   .result-tag.bj { color: var(--gold-bright); }
+
+  /* ---------- status strip: balance and bet next to the buttons ---------- */
+  .status { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--table-muted); padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, .14); }
+  .status b { font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 24px; letter-spacing: 0; text-transform: none; color: var(--table-ink); font-variant-numeric: tabular-nums; margin-left: 6px; }
+  .status .neg { color: #F5B9AD; }
 
   /* ---------- controls ---------- */
   .controls { display: grid; gap: 10px; justify-items: center; }
@@ -391,12 +396,13 @@
     .advisor { position: static; }
     .advisor select { font-size: 16px; }
     .table { padding: 14px 12px 14px; border-radius: 22px; border-width: 5px; min-height: 0; }
-    .card { width: 54px; height: 76px; }
-    .card + .card { margin-left: -20px; }
-    .card .idx { font-size: 15px; top: 4px; left: 5px; }
+    .card { width: 62px; height: 88px; }
+    .card + .card { margin-left: -24px; }
+    .card .idx { font-size: 19px; top: 4px; left: 5px; }
+    .card .idx i { font-size: 14px; }
     .card .idx.b { right: 5px; bottom: 4px; }
-    .card .pip { font-size: 24px; }
-    .cards { min-height: 78px; }
+    .card .pip { font-size: 32px; }
+    .cards { min-height: 90px; }
     .btn { padding: 10px 14px; min-width: 0; font-size: 14px; }
     .hands { gap: 8px 10px; }
     .hand { padding: 8px 8px 6px; }
@@ -438,6 +444,7 @@
       </div>
       <div class="message" id="message"></div>
       <div class="hands" id="hands"></div>
+      <div class="status" id="status"></div>
       <div class="controls" id="controls"></div>
     </section>
 
@@ -502,6 +509,14 @@
         <button type="button" data-lang="lt" aria-pressed="true">LT</button>
         <button type="button" data-lang="en" aria-pressed="false">EN</button>
       </span></div>
+    <div class="sep"></div>
+    <label class="row-set"><span data-i18n="sBoxes">Rankų skaičius</span>
+      <select id="set-boxes">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select></label>
+    <p class="note" data-i18n="boxesNote"></p>
     <div class="sep"></div>
     <span class="t" data-i18n="training">Treniruotė</span>
     <label class="row-set"><span data-i18n="sDeals">Dalinimai</span>
@@ -1039,8 +1054,8 @@ function buildStrategy(rulesIn) {
       bust: 'Viršyta ({n})', bj: 'Black Jack', slot: 'antra korta po jūsų ėjimų',
       push: 'Lygiosios', surrendered: 'Pasiduota', even: 'Even money',
       msgEmpty: 'Balansas tuščias. Spauskite „Papildyti“.', msgBet: 'Pasirinkite statymą ir spauskite <b>Dalinti</b>.',
-      msgEven: '<b>Black Jack</b> prieš tūzą. Imti even money <b>+{x}</b> iš karto, ar laukti?',
-      msgIns: 'Krupjė rodo tūzą. Imti draudimą už <b>{x}</b>?',
+      msgEven: '{h}<b>Black Jack</b> prieš tūzą. Imti even money <b>+{x}</b> iš karto, ar laukti?',
+      msgIns: '{h}Krupjė rodo tūzą. Imti draudimą už <b>{x}</b>?',
       msgBJ: '<b>Black Jack!</b>', msgHandTurn: 'Ranka <b>{n}</b>: jūsų ėjimas.', msgTurn: 'Jūsų ėjimas.', msgDealer: 'Krupjė traukia kortas…',
       msgResult: 'Krupjė {d}.{ins} Šio dalinimo rezultatas: <b>{net}</b>.',
       dBJ: '<b>Black Jack</b>', dBust: '<b>viršijo</b> ({n})', dNoSecond: 'antros kortos nereikėjo', dTotal: '<b>{n}</b>',
@@ -1081,6 +1096,7 @@ function buildStrategy(rulesIn) {
       statsNote: 'Prarasta EV – klaidų kaina, sudėta procentais nuo statymo.', statsNone: 'Kol kas sprendimų nėra.',
       handAria: 'Ranka {n}',
       undoChip: 'Atimti paskutinį žetoną', doubleBet: 'Dvigubinti statymą',
+      sBoxes: 'Rankų skaičius', boxesNote: 'Kiek rankų (dėžučių) žaidžiate vienu metu. Kiekviena ranka stato tą patį statymą, draudimas ir even money siūlomi kiekvienai rankai atskirai.', onTable: 'Ant stalo', perHand: '× {n}', insuranceLbl: 'Draudimas',
       menu: 'Meniu', close: 'Uždaryti', tabSettings: 'Nustatymai', tabHistory: 'Istorija', tabStats: 'Statistika', more: 'Daugiau…',
       sHints: 'Patarimai', sLang: 'Kalba', sFlash: 'Spalvų signalas po sprendimo', training: 'Treniruotė',
       historyHint: 'Naujausi dalinimai viršuje. Spustelėkite dalinimą, kad pamatytumėte visus jo sprendimus.',
@@ -1147,8 +1163,8 @@ function buildStrategy(rulesIn) {
       bust: 'Bust ({n})', bj: 'Black Jack', slot: 'second card after your moves',
       push: 'Push', surrendered: 'Surrendered', even: 'Even money',
       msgEmpty: 'Balance is empty. Press “Top up”.', msgBet: 'Choose a bet and press <b>Deal</b>.',
-      msgEven: '<b>Black Jack</b> against an ace. Take even money <b>+{x}</b> now, or wait?',
-      msgIns: 'The dealer shows an ace. Take insurance for <b>{x}</b>?',
+      msgEven: '{h}<b>Black Jack</b> against an ace. Take even money <b>+{x}</b> now, or wait?',
+      msgIns: '{h}The dealer shows an ace. Take insurance for <b>{x}</b>?',
       msgBJ: '<b>Black Jack!</b>', msgHandTurn: 'Hand <b>{n}</b>: your move.', msgTurn: 'Your move.', msgDealer: 'The dealer draws…',
       msgResult: 'Dealer {d}.{ins} This round: <b>{net}</b>.',
       dBJ: '<b>Black Jack</b>', dBust: '<b>busts</b> ({n})', dNoSecond: 'needed no second card', dTotal: '<b>{n}</b>',
@@ -1189,6 +1205,7 @@ function buildStrategy(rulesIn) {
       statsNote: 'EV lost – the cost of mistakes, summed as % of the bet.', statsNone: 'No decisions yet.',
       handAria: 'Hand {n}',
       undoChip: 'Remove the last chip', doubleBet: 'Double the bet',
+      sBoxes: 'Hands per round', boxesNote: 'How many hands (boxes) you play at once. Each hand bets the same amount; insurance and even money are offered per hand.', onTable: 'On the table', perHand: '× {n}', insuranceLbl: 'Insurance',
       menu: 'Menu', close: 'Close', tabSettings: 'Settings', tabHistory: 'History', tabStats: 'Statistics', more: 'More…',
       sHints: 'Hints', sLang: 'Language', sFlash: 'Colour flash after a decision', training: 'Training',
       historyHint: 'Newest rounds first. Tap a round to see all of its decisions.',
@@ -1307,7 +1324,8 @@ function buildStrategy(rulesIn) {
     advice: null, feedback: null, hintMode: 'live',
     stats: { decisions: 0, correct: 0, evLost: 0 },
     streak: { cur: 0, best: 0 },
-    settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto', flash: true, learn: false, grading: 'table' },
+    settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto', flash: true, learn: false, grading: 'table', boxes: 1 },
+    offerBox: 0,
     mistakes: {}, fromPool: false, cells: {},
     session: freshSession(1000),
     roundDecisions: [], autoTimer: null, flashTimer: null, drawerTab: 'settings',
@@ -1495,9 +1513,12 @@ function buildStrategy(rulesIn) {
 
   function canDouble(h) { return state.phase === 'play' && h.cards.length === 2 && !h.fromAces; }
   function isPair(h) { return h.cards.length === 2 && cardValue(h.cards[0]) === cardValue(h.cards[1]); }
-  function canSplit(h) { return state.phase === 'play' && isPair(h) && state.hands.length < RULES.maxSplitHands && !h.fromAces; }
+  const boxHands = (box) => state.hands.filter(h => h.box === box);
+  const boxCount = () => Math.max(1, Math.min(3, +state.settings.boxes || 1));
+  const offerHand = () => state.hands.find(h => h.box === state.offerBox);
+  function canSplit(h) { return state.phase === 'play' && isPair(h) && boxHands(h.box).length < RULES.maxSplitHands && !h.fromAces; }
   function canSurrender(h) {
-    return state.phase === 'play' && RULES.surrender !== 'none' && state.hands.length === 1 && !h.isSplit && h.cards.length === 2 &&
+    return state.phase === 'play' && RULES.surrender !== 'none' && boxHands(h.box).length === 1 && !h.isSplit && h.cards.length === 2 &&
       (RULES.surrenderVsAce || cardValue(state.dealer[0]) !== 1);
   }
 
@@ -1510,7 +1531,7 @@ function buildStrategy(rulesIn) {
     const extra = new Array(10).fill(0);
     state.hands.forEach((h, i) => { if (i !== state.active) for (const c of h.cards) extra[cardValue(c) - 1]++; });
     const evs = ctx.evaluate(countsOf(hand.cards), {
-      extra, canDouble: canDouble(hand), canSplit: canSplit(hand), canSurrender: canSurrender(hand), nHands: state.hands.length, isSplitAces: hand.fromAces,
+      extra, canDouble: canDouble(hand), canSplit: canSplit(hand), canSurrender: canSurrender(hand), nHands: boxHands(hand.box).length, isSplitAces: hand.fromAces,
     });
     if (evs.bust) return null;
     // facts for explanations: dealer bust / BJ chance, own bust chance on the next card
@@ -1535,7 +1556,7 @@ function buildStrategy(rulesIn) {
   }
   // probability that the dealer's second card is a ten, given the visible cards
   function insuranceAdvice() {
-    const visible = [...state.hands[0].cards, ...state.dealer];
+    const visible = [...state.hands.flatMap(h => h.cards), ...state.dealer];
     const tens = 16 * RULES.decks - visible.filter(c => cardValue(c) === 10).length;
     const n = 52 * RULES.decks - visible.length;
     const p = tens / n;
@@ -1547,50 +1568,58 @@ function buildStrategy(rulesIn) {
     const wait = RULES.bjPays * (1 - p);
     return { p, wait, even: 1, cost: wait - 1 };
   }
-  const offerIsEvenMoney = () => state.phase === 'insurance' && state.hands[0].natural;
+  const offerIsEvenMoney = () => { const h = offerHand(); return state.phase === 'insurance' && !!h && !!h.natural; };
 
   // ---------- game flow ----------
   function deal() {
-    if (state.bet <= 0 || state.bet > state.balance) return;
-    state.balance -= state.bet;
+    const boxes = boxCount();
+    if (state.bet <= 0 || state.bet * boxes > state.balance) return;
+    state.balance -= state.bet * boxes;
     state.lastBet = state.bet;
     state.shoe = newShoe();
     state.fromPool = false;
     if (!state.rigged && state.settings.learn) { const spec = pickMistake(); if (spec) { state.rigged = spec; state.fromPool = true; } }
     if (!state.rigged && state.settings.drill !== 'all') state.rigged = drillHand(state.settings.drill);
-    if (state.rigged) { // cards dealt next, in order: dealer up card, player's two cards, further draws
+    if (state.rigged) { // cards dealt next, in order: dealer up card, first hand's two cards, further draws
       for (const spec of state.rigged.slice().reverse()) state.shoe.push(takeCard(spec));
       state.rigged = null;
     }
     state.roundDecisions = [];
     state.dealer = [draw()];
-    state.hands = [{ cards: [draw(), draw()], bet: state.bet, done: false }];
+    state.hands = [];
+    for (let b = 0; b < boxes; b++) {
+      const h = { cards: [draw(), draw()], bet: state.bet, done: false, box: b, insurance: 0, insurancePay: 0 };
+      if (totals(h.cards).total === 21) { h.natural = true; h.done = true; }
+      state.hands.push(h);
+    }
     state.active = 0;
-    state.insurance = 0; state.insuranceResult = null;
+    state.insuranceResult = null;
     state.feedback = null;
-    const h = state.hands[0];
-    if (totals(h.cards).total === 21) { h.natural = true; h.done = true; }
-    state.phase = cardValue(state.dealer[0]) === 1 ? 'insurance' : 'play';
-    if (state.phase === 'play' && h.done) { render(); dealerTurn(); return; }
-    render();
+    if (cardValue(state.dealer[0]) === 1) { state.phase = 'insurance'; state.offerBox = 0; render(); return; }
+    startPlay();
+  }
+  function startPlay() {
+    state.phase = 'play';
+    state.active = -1;
+    advance();
   }
   function answerOffer(yes) {
     if (state.phase !== 'insurance') return;
-    const hand = state.hands[0];
+    const hand = offerHand();
+    if (!hand) { startPlay(); return; }
     if (hand.natural) {
       const em = evenMoneyAdvice();
       const cost = yes ? em.cost : 0;
-      recordCustom(cost, 'bjVsA', yes ? 'emTaken' : 'emWait', { e: () => fmtPct(1), w: () => fmtPct(em.wait), cost: () => fmtPct(cost) });
+      recordCustom(cost, 'bjVsA', yes ? 'emTaken' : 'emWait', { e: () => fmtPct(1), w: () => fmtPct(em.wait), cost: () => fmtPct(cost) }, hand);
       if (yes) hand.evenMoney = true;
     } else {
       const ia = insuranceAdvice();
       const cost = yes ? ia.cost : 0;
-      recordCustom(cost, 'insVsA', yes ? 'insTaken' : 'insDeclined', { ev: () => fmtPct(ia.ev), cost: () => fmtPct(cost) });
-      if (yes) { const amt = hand.bet / 2; state.insurance = amt; state.balance -= amt; }
+      recordCustom(cost, 'insVsA', yes ? 'insTaken' : 'insDeclined', { ev: () => fmtPct(ia.ev), cost: () => fmtPct(cost) }, hand);
+      if (yes && state.balance >= hand.bet / 2) { hand.insurance = hand.bet / 2; state.balance -= hand.insurance; }
     }
-    state.phase = 'play';
-    if (hand.done) { render(); dealerTurn(); return; }
-    render();
+    if (state.offerBox + 1 < boxCount()) { state.offerBox++; render(); return; }
+    startPlay();
   }
   // custom feedback keeps keys + value producers so it can be re-rendered in either language
   function bump(cost, decision, ok = isOk(cost)) {
@@ -1625,8 +1654,7 @@ function buildStrategy(rulesIn) {
     clearTimeout(state.flashTimer);
     state.flashTimer = setTimeout(() => { $('flash').classList.remove('ok', 'miss'); $('table').classList.remove('ok', 'miss'); }, 900);
   }
-  function recordCustom(cost, labelKey, textKey, vars) {
-    const hand = state.hands[0];
+  function recordCustom(cost, labelKey, textKey, vars, hand = state.hands[0]) {
     const chosen = textKey === 'emTaken' ? 'rEven' : textKey === 'emWait' ? 'rWait' : textKey === 'insTaken' ? 'rIns' : 'rNoIns';
     const best = textKey.startsWith('em') ? 'rWait' : 'rNoIns';
     const facts = { pTen: insuranceAdvice().p };
@@ -1673,7 +1701,7 @@ function buildStrategy(rulesIn) {
       state.balance -= hand.bet;
       const second = hand.cards.pop();
       const aces = cardValue(second) === 1;
-      const nh = { cards: [second], bet: hand.bet, done: false, isSplit: true, fromAces: aces };
+      const nh = { cards: [second], bet: hand.bet, done: false, isSplit: true, fromAces: aces, box: hand.box, insurance: 0, insurancePay: 0 };
       hand.isSplit = true; hand.fromAces = aces;
       state.hands.splice(state.active + 1, 0, nh);
       hand.cards.push(draw());
@@ -1685,7 +1713,7 @@ function buildStrategy(rulesIn) {
   function advance() {
     for (;;) {
       const hand = state.hands[state.active];
-      if (!hand.done) break;
+      if (hand && !hand.done) break;
       let i = state.active + 1;
       while (i < state.hands.length && state.hands[i].done) i++;
       if (i >= state.hands.length) { render(); dealerTurn(); return; }
@@ -1700,7 +1728,7 @@ function buildStrategy(rulesIn) {
     state.phase = 'dealer';
     render();
     const upV = cardValue(state.dealer[0]);
-    const needSecond = state.insurance > 0 || state.hands.some(h => !h.busted && !h.surrendered && !(h.natural && (h.evenMoney || (upV !== 10 && upV !== 1))));
+    const needSecond = state.hands.some(h => h.insurance > 0) || state.hands.some(h => !h.busted && !h.surrendered && !(h.natural && (h.evenMoney || (upV !== 10 && upV !== 1))));
     if (needSecond) { await sleep(dealerDelay()); state.dealer.push(draw()); render(); }
     const dBJ = state.dealer.length === 2 && totals(state.dealer).total === 21;
     if (!dBJ && state.hands.some(h => !h.busted && !h.natural && !h.surrendered)) {
@@ -1732,9 +1760,11 @@ function buildStrategy(rulesIn) {
       h.result = res; h.payout = pay;
       state.balance += pay;
     }
-    if (state.insurance > 0) {
-      if (dBJ) { state.balance += 3 * state.insurance; state.insuranceResult = 'win'; } else state.insuranceResult = 'lose';
+    let insured = false;
+    for (const h of state.hands) {
+      if (h.insurance > 0) { insured = true; h.insurancePay = dBJ ? 3 * h.insurance : 0; state.balance += h.insurancePay; }
     }
+    state.insuranceResult = insured ? (dBJ ? 'win' : 'lose') : null;
     state.phase = 'result';
     const net = roundNet();
     const ss = state.session;
@@ -1747,7 +1777,7 @@ function buildStrategy(rulesIn) {
     ss.history.unshift({ n: ss.rounds, bet: state.lastBet,
       dealer: state.dealer.map(c => c.r + c.s), dBJ, dBust: dt.bust, dTotal: dt.total,
       hands: state.hands.map(h => ({ cards: h.cards.map(c => c.r + c.s), res: h.result, net: h.payout - h.bet })),
-      insurance: state.insuranceResult ? (state.insuranceResult === 'win' ? 2 * state.insurance : -state.insurance) : 0,
+      insurance: state.hands.reduce((sum, h) => sum + (h.insurancePay || 0) - (h.insurance || 0), 0), boxes: boxCount(),
       net, decisions: state.roundDecisions.slice(),
     });
     if (ss.history.length > 50) ss.history.pop();
@@ -1762,11 +1792,12 @@ function buildStrategy(rulesIn) {
       }, 1600);
     }
   }
-  const roundNet = () => state.hands.reduce((sum, h) => sum + h.payout - h.bet, 0) +
-    (state.insuranceResult === 'win' ? 2 * state.insurance : state.insuranceResult === 'lose' ? -state.insurance : 0);
+  const roundNet = () => state.hands.reduce((sum, h) => sum + h.payout - h.bet + (h.insurancePay || 0) - (h.insurance || 0), 0);
+  const insuranceNet = () => state.hands.reduce((sum, h) => sum + (h.insurancePay || 0) - (h.insurance || 0), 0);
   function newRound() {
     if (state.autoTimer) { clearTimeout(state.autoTimer); state.autoTimer = null; }
-    state.betStack = decompose(Math.min(state.lastBet, state.balance));
+    const maxBet = Math.floor(state.balance / boxCount() / 5) * 5;
+    if (!state.betStack.length || state.bet > maxBet) state.betStack = decompose(Math.min(state.lastBet, maxBet));
     betFromStack();
     state.phase = 'bet';
     state.dealer = []; state.hands = []; state.advice = null;
@@ -1821,7 +1852,7 @@ function buildStrategy(rulesIn) {
     $('dealer-total').innerHTML = state.dealer.length ? totalText(state.dealer, { dealer: true }) : '';
 
     $('hands').innerHTML = state.hands.map((h, i) => {
-      const active = state.phase === 'play' && i === state.active && !h.done;
+      const active = (state.phase === 'play' && i === state.active && !h.done) || (state.phase === 'insurance' && h === offerHand());
       const dim = state.phase === 'play' && !active && h.done && !h.natural;
       return `<div class="hand${active ? ' active' : ''}${dim ? ' dim' : ''}" aria-label="${t('handAria', { n: i + 1 })}">
         <div class="cards">${h.cards.map(cardHTML).join('')}</div>
@@ -1831,6 +1862,12 @@ function buildStrategy(rulesIn) {
       </div>`;
     }).join('');
 
+    const boxes = boxCount();
+    const onTable = state.hands.reduce((sum, h) => sum + h.bet + (h.insurance || 0), 0);
+    $('status').innerHTML = `<span>${t('balance')}<b class="${state.balance < 5 ? 'neg' : ''}">${fmtMoney(state.balance)}</b></span>` +
+      (state.phase === 'bet' || state.phase === 'result'
+        ? `<span>${t('betNow')}<b>${fmtMoney(state.bet)}</b>${boxes > 1 ? ` <span>${t('perHand', { n: boxes })} =</span><b>${fmtMoney(state.bet * boxes)}</b>` : ''}</span>`
+        : `<span>${t('onTable')}<b>${fmtMoney(onTable)}</b></span>`);
     renderMessage();
     renderControls();
     renderAdvisor();
@@ -1840,9 +1877,12 @@ function buildStrategy(rulesIn) {
     const m = $('message');
     switch (state.phase) {
       case 'bet': m.innerHTML = state.balance < 5 ? t('msgEmpty') : t('msgBet'); break;
-      case 'insurance': m.innerHTML = offerIsEvenMoney()
-        ? t('msgEven', { x: fmtMoney(state.hands[0].bet) })
-        : t('msgIns', { x: fmtMoney(state.hands[0].bet / 2) }); break;
+      case 'insurance': {
+        const oh = offerHand();
+        const hh = state.hands.length > 1 ? t('handN', { n: state.hands.indexOf(oh) + 1 }) + ': ' : '';
+        m.innerHTML = offerIsEvenMoney() ? t('msgEven', { h: hh, x: fmtMoney(oh.bet) }) : t('msgIns', { h: hh, x: fmtMoney(oh.bet / 2) });
+        break;
+      }
       case 'play': {
         const h = state.hands[state.active];
         m.innerHTML = (h.natural ? t('msgBJ') : (state.hands.length > 1 ? t('msgHandTurn', { n: state.active + 1 }) : t('msgTurn'))) + (state.fromPool ? ` <small style="color:var(--table-muted)">· ${t('fromPool')}</small>` : '');
@@ -1854,7 +1894,8 @@ function buildStrategy(rulesIn) {
         const dBJ = state.dealer.length === 2 && dt.total === 21;
         const d = dBJ ? t('dBJ') : dt.bust ? t('dBust', { n: dt.hard }) : state.dealer.length === 1 ? t('dNoSecond') : t('dTotal', { n: dt.total });
         const net = roundNet();
-        const ins = state.insuranceResult ? (state.insuranceResult === 'win' ? t('insWon', { x: fmtMoney(2 * state.insurance) }) : t('insLost', { x: fmtMoney(state.insurance) })) : '';
+        const insNet = insuranceNet();
+        const ins = state.insuranceResult ? (insNet > 0 ? t('insWon', { x: fmtMoney(insNet) }) : t('insLost', { x: fmtMoney(-insNet) })) : '';
         m.innerHTML = t('msgResult', { d, ins, net: (net > 0 ? '+' : '') + fmtMoney(net) });
         break;
       }
@@ -1874,24 +1915,31 @@ function buildStrategy(rulesIn) {
     return `<span class="${ok ? 'ok' : 'miss'}">${ok ? t(okKey, { action: name(f.action), diff: fmtCost(f.cost) }) : t('tipMiss', { best: lower(name(f.best)), cost: fmtCost(f.cost) })}</span>`;
   }
 
+  function betRow() {
+    const boxes = boxCount();
+    const maxBet = Math.floor(state.balance / boxes / 5) * 5;
+    return `<div class="bet-chips"><button class="minus" type="button" data-act="undo-chip" ${state.betStack.length ? '' : 'disabled'} aria-label="${t('undoChip')}">−</button>
+      ${CHIPS.map(v => `<button type="button" data-chip="${v}" ${(state.bet + v) * boxes > state.balance ? 'disabled' : ''} aria-label="${t('addChip', { v })}"><span class="chip c${v}">${v}</span></button>`).join('')}
+      <button class="minus x2" type="button" data-act="double-bet" ${state.bet > 0 && state.bet < maxBet ? '' : 'disabled'} aria-label="${t('doubleBet')}">×2</button>
+      <button class="ghost" type="button" data-act="clear" style="color:var(--table-ink);border-color:rgba(255,255,255,.4)">${t('clear')}</button></div>`;
+  }
   function renderControls() {
     const c = $('controls');
     const a = state.advice;
+    const boxes = boxCount();
+    const canDeal = state.bet > 0 && state.bet * boxes <= state.balance;
     if (state.phase === 'bet') {
-      c.innerHTML = `<div class="bet-now">${t('betNow')} <b>${fmtMoney(state.bet)}</b></div>
-        <div class="bet-chips"><button class="minus" type="button" data-act="undo-chip" ${state.betStack.length ? '' : 'disabled'} aria-label="${t('undoChip')}">−</button>
-          ${CHIPS.map(v => `<button type="button" data-chip="${v}" ${state.bet + v > state.balance ? 'disabled' : ''} aria-label="${t('addChip', { v })}"><span class="chip c${v}">${v}</span></button>`).join('')}
-          <button class="minus x2" type="button" data-act="double-bet" ${state.bet > 0 && state.bet < state.balance ? '' : 'disabled'} aria-label="${t('doubleBet')}">×2</button>
-          <button class="ghost" type="button" data-act="clear" style="color:var(--table-ink);border-color:rgba(255,255,255,.4)">${t('clear')}</button></div>
-        <div class="row"><button class="btn primary" type="button" data-act="deal" ${state.bet <= 0 || state.bet > state.balance ? 'disabled' : ''}>${t('deal')}</button></div>`;
+      c.innerHTML = betRow() + `<div class="row"><button class="btn primary" type="button" data-act="deal" ${canDeal ? '' : 'disabled'}>${t('deal')}</button></div>`;
     } else if (state.phase === 'insurance' && offerIsEvenMoney()) {
       const em = evenMoneyAdvice();
+      const oh = offerHand();
       c.innerHTML = `<div class="tip">${state.hintMode === 'live' ? `${t('tipAdvisor')} <b>${t('tipWait')}</b> <small>· ${t('tipWaitDetail', { w: fmtPct(em.wait), e: fmtPct(1) })}</small>` : ''}</div>
-        <div class="row"><button class="btn" type="button" data-act="ins-no">${t('waitBtn')}</button><button class="btn" type="button" data-act="ins-yes">${t('evenBtn', { x: fmtMoney(state.hands[0].bet) })}</button></div>`;
+        <div class="row"><button class="btn" type="button" data-act="ins-no">${t('waitBtn')}</button><button class="btn" type="button" data-act="ins-yes">${t('evenBtn', { x: fmtMoney(oh.bet) })}</button></div>`;
     } else if (state.phase === 'insurance') {
       const ia = insuranceAdvice();
+      const oh = offerHand();
       c.innerHTML = `<div class="tip">${state.hintMode === 'live' ? `${t('tipAdvisor')} <b>${t('tipNoIns')}</b> <small>· ${t('tipInsDetail', { ev: fmtPct(ia.ev) })}</small>` : ''}</div>
-        <div class="row"><button class="btn" type="button" data-act="ins-no">${t('noInsBtn')}</button><button class="btn" type="button" data-act="ins-yes" ${state.balance < state.hands[0].bet / 2 ? 'disabled' : ''}>${t('insBtn', { x: fmtMoney(state.hands[0].bet / 2) })}</button></div>`;
+        <div class="row"><button class="btn" type="button" data-act="ins-no">${t('noInsBtn')}</button><button class="btn" type="button" data-act="ins-yes" ${state.balance < oh.bet / 2 ? 'disabled' : ''}>${t('insBtn', { x: fmtMoney(oh.bet / 2) })}</button></div>`;
     } else if (state.phase === 'play') {
       const h = state.hands[state.active];
       const rec = (k) => state.hintMode === 'live' && a && a.best === k ? ' rec' : '';
@@ -1913,7 +1961,7 @@ function buildStrategy(rulesIn) {
     } else if (state.phase === 'dealer') {
       c.innerHTML = `<div class="tip">${verdictLine()}</div>`;
     } else {
-      c.innerHTML = `<div class="tip">${verdictLine()}</div><div class="row"><button class="btn primary" type="button" data-act="new" ${state.balance < 5 ? 'disabled' : ''}>${t('newRound')}</button><button class="btn" type="button" data-act="change">${t('changeBet')}</button></div>`;
+      c.innerHTML = `<div class="tip">${verdictLine()}</div>` + betRow() + `<div class="row"><button class="btn primary" type="button" data-act="new" ${canDeal ? '' : 'disabled'}>${t('newRound')}</button></div>`;
     }
   }
 
@@ -2008,6 +2056,7 @@ function buildStrategy(rulesIn) {
     if (!$('drawer').classList.contains('open') || state.drawerTab === 'stats') renderAnalysis();
 
     $('set-flash').checked = state.settings.flash !== false;
+    $('set-boxes').value = String(boxCount());
     $('set-grading').value = state.settings.grading || 'table';
     $('set-learn').checked = !!state.settings.learn;
     const pool = Object.values(state.mistakes).sort((a, b) => b.count - a.count);
@@ -2216,14 +2265,14 @@ function buildStrategy(rulesIn) {
   // ---------- events ----------
   $('controls').addEventListener('click', (e) => {
     const chip = e.target.closest('button[data-chip]');
-    if (chip) { const v = +chip.dataset.chip; if (state.bet + v <= state.balance) { state.betStack.push(v); betFromStack(); render(); } return; }
+    if (chip) { const v = +chip.dataset.chip; if ((state.bet + v) * boxCount() <= state.balance) { state.betStack.push(v); betFromStack(); render(); } return; }
     const b = e.target.closest('button[data-act]');
     if (!b || b.disabled) return;
     const act = b.dataset.act;
     if (act === 'deal') deal();
     else if (act === 'clear') { state.betStack = []; betFromStack(); render(); }
     else if (act === 'undo-chip') { state.betStack.pop(); betFromStack(); render(); }
-    else if (act === 'double-bet') { const nb = Math.min(state.bet * 2, Math.floor(state.balance / 5) * 5); state.betStack = decompose(nb); betFromStack(); render(); }
+    else if (act === 'double-bet') { const nb = Math.min(state.bet * 2, Math.floor(state.balance / boxCount() / 5) * 5); state.betStack = decompose(nb); betFromStack(); render(); }
     else if (act === 'ins-yes') answerOffer(true);
     else if (act === 'ins-no') answerOffer(false);
     else if (act === 'new') { newRound(); if (state.bet > 0) deal(); }
@@ -2238,6 +2287,7 @@ function buildStrategy(rulesIn) {
   $('set-speed').addEventListener('change', (e) => { state.settings.speed = e.target.value; persist(); });
   $('set-level').addEventListener('change', (e) => { state.settings.level = +e.target.value; persist(); });
   $('set-flash').addEventListener('change', (e) => { state.settings.flash = e.target.checked; persist(); });
+  $('set-boxes').addEventListener('change', (e) => { state.settings.boxes = +e.target.value; persist(); if (state.phase === 'bet' || state.phase === 'result') { const maxBet = Math.floor(state.balance / boxCount() / 5) * 5; if (state.bet > maxBet) { state.betStack = decompose(maxBet); betFromStack(); } } render(); });
   $('set-grading').addEventListener('change', (e) => { state.settings.grading = e.target.value; persist(); });
   $('set-learn').addEventListener('change', (e) => { state.settings.learn = e.target.checked; persist(); render(); });
   $('clear-pool').addEventListener('click', () => { state.mistakes = {}; persist(); render(); });

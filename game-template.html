@@ -415,9 +415,27 @@
   @media (prefers-reduced-motion: reduce) { .drawer, .flash, .table { transition: none; } }
 
   @media (hover: none) { .keys { display: none; } }
+  .tabs .tab-advisor { display: none; }
+  .drawer .advisor { position: static; max-height: none; box-shadow: none; padding: 0; border-radius: 0; background: none; }
+  .tip .why-btn { display: none; }
   @media (max-width: 860px) {
+    /* phone: only the table on screen, everything else lives in the menu */
+    .top > div:first-child, .wallet, .rules-line { display: none; }
+    .top { margin-bottom: 8px; justify-content: flex-end; }
+    .tabs .tab-advisor { display: block; }
+    .tip .why-btn { display: inline-block; margin-left: 8px; border: 1px solid var(--gold-bright); background: none; color: var(--gold-bright); border-radius: 999px; padding: 1px 9px; font: inherit; font-size: 13px; }
+    .table {
+      display: flex; flex-direction: column;
+      height: calc(100vh - 68px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(100dvh - 68px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: 0; gap: 8px; overflow: hidden;
+    }
+    .dealer-area, .message, .spots, .status, .controls { flex: none; }
+    .hands { flex: 1; min-height: 0; overflow-y: auto; align-content: flex-start; }
+    .message { min-height: 0; font-size: 14px; }
+    .controls { gap: 8px; }
     .app { padding: 14px 10px 30px; }
-    .app { padding: calc(14px + env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) calc(30px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+    .app { padding: calc(8px + env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
     .layout { grid-template-columns: 1fr; gap: 14px; }
     .advisor { position: static; }
     .advisor select { font-size: 16px; }
@@ -475,6 +493,7 @@
       <div class="controls" id="controls"></div>
     </section>
 
+    <div id="advisor-home">
     <aside class="advisor" id="advisor-panel">
       <header>
         <h2 data-i18n="advisor">Patarėjas</h2>
@@ -500,6 +519,7 @@
         <span class="keys" data-i18n="keys">Klavišai: <kbd>H</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>P</kbd> <kbd>R</kbd> <kbd>Enter</kbd></span>
       </div>
     </aside>
+    </div>
   </div>
 
   <p class="rules-line" data-i18n="rulesLine"></p>
@@ -513,10 +533,12 @@
     <button class="icon-btn" id="menu-close" type="button" aria-label="Uždaryti">✕</button>
   </header>
   <nav class="tabs" role="tablist">
+    <button type="button" role="tab" class="tab-advisor" data-tab="advisor" aria-selected="false" data-i18n="advisor">Patarėjas</button>
     <button type="button" role="tab" data-tab="settings" aria-selected="true" data-i18n="tabSettings">Nustatymai</button>
     <button type="button" role="tab" data-tab="history" aria-selected="false" data-i18n="tabHistory">Istorija</button>
     <button type="button" role="tab" data-tab="stats" aria-selected="false" data-i18n="tabStats">Statistika</button>
   </nav>
+  <section class="tabpanel" data-panel="advisor" id="advisor-slot" hidden></section>
   <section class="tabpanel" data-panel="settings">
     <label class="row-set"><span data-i18n="sHints">Patarimai</span>
       <select class="hint-mode-select">
@@ -581,6 +603,8 @@
         <button class="pill primary" type="button" id="bal-set" data-i18n="setBalance">Nustatyti</button>
       </span></div>
     <p class="note" data-i18n="balanceNote"></p>
+    <div class="sep"></div>
+    <p class="note" data-i18n="rulesLine"></p>
   </section>
   <section class="tabpanel history" data-panel="history" hidden>
     <p class="note" data-i18n="historyHint"></p>
@@ -685,7 +709,7 @@ __SOLVER__
       sHints: 'Patarimai', sLang: 'Kalba', sFlash: 'Spalvų signalas po sprendimo', training: 'Treniruotė',
       historyHint: 'Naujausi dalinimai viršuje. Spustelėkite dalinimą, kad pamatytumėte visus jo sprendimus.',
       roundN: 'Dalinimas {n}', resetSession: 'Pradėti sesiją iš naujo',
-      why: 'Kodėl', how: 'Kaip elgtis', runnerUp: 'antras variantas {a} ({ev})', handN: 'Ranka {n}', betN: 'statymas {b}',
+      why: 'Kodėl', whyBtn: 'Kodėl?', how: 'Kaip elgtis', runnerUp: 'antras variantas {a} ({ev})', handN: 'Ranka {n}', betN: 'statymas {b}',
       xIns: 'Draudimas ir even money apsimoka tik kai dešimtuko tikimybė viršija 33,3 %, o dabar ji {p}. Ilgainiui tai pralaimintis statymas.',
       xSurrender: 'Su {total} prieš {up} bet koks žaidimas vidutiniškai praranda daugiau nei pusę statymo ({ev}). Pasidavimas fiksuoja −50 %.',
       xStandNotHit: 'Krupjė su {up} viršija {bust} atvejų. Imant su {total} patys viršytumėte {pbust} atvejų – leiskite rizikuoti krupjė.',
@@ -794,7 +818,7 @@ __SOLVER__
       sHints: 'Hints', sLang: 'Language', sFlash: 'Colour flash after a decision', training: 'Training',
       historyHint: 'Newest rounds first. Tap a round to see all of its decisions.',
       roundN: 'Round {n}', resetSession: 'Restart the session',
-      why: 'Why', how: 'How to play it', runnerUp: 'runner-up {a} ({ev})', handN: 'Hand {n}', betN: 'bet {b}',
+      why: 'Why', whyBtn: 'Why?', how: 'How to play it', runnerUp: 'runner-up {a} ({ev})', handN: 'Hand {n}', betN: 'bet {b}',
       xIns: 'Insurance and even money only pay when the chance of a ten exceeds 33.3 %; right now it is {p}. In the long run it is a losing bet.',
       xSurrender: 'With {total} against {up} any play loses more than half the bet on average ({ev}). Surrender locks in −50 %.',
       xStandNotHit: 'The dealer busts {bust} of the time with {up}. Hitting {total} you would bust {pbust} of the time – let the dealer take the risk.',
@@ -1532,7 +1556,7 @@ __SOLVER__
       return `<span class="${ok ? 'ok' : 'miss'}">${ok ? t('tipOk', { action: chosen }) : t('tipMiss', { best: f.customKey === 'emTaken' ? t('tipWait') : t('tipNoIns'), cost: fmtPct(f.cost) })}</span>`;
     }
     const okKey = f.action === f.best ? 'tipOk' : f.cost < EQUAL_EPS ? 'tipTie' : f.action === f.tableAct ? 'tipTable' : 'tipMarginal';
-    return `<span class="${ok ? 'ok' : 'miss'}">${ok ? t(okKey, { action: name(f.action), diff: fmtCost(f.cost) }) : t('tipMiss', { best: lower(name(f.best)), cost: fmtCost(f.cost) })}</span>`;
+    return `<span class="${ok ? 'ok' : 'miss'}">${ok ? t(okKey, { action: name(f.action), diff: fmtCost(f.cost) }) : t('tipMiss', { best: lower(name(f.best)), cost: fmtCost(f.cost) })}</span>` + (ok ? '' : `<button type="button" class="why-btn" data-act="why">${t('whyBtn')}</button>`);
   }
 
   function betRow() {
@@ -1849,6 +1873,16 @@ __SOLVER__
     $('patterns').innerHTML = plist.length ? plist.map(([k, n]) => `<div class="pat"><div class="hd"><b>${t('pat_' + k)}</b><span class="cnt">${n}</span></div><div class="adv">${t('adv_' + k)}</div></div>`).join('') : `<p class="note">${t('noPatterns')}</p>`;
   }
 
+  // ---------- advisor placement: right column on desktop, menu tab on phones ----------
+  const phoneQuery = window.matchMedia('(max-width: 860px)');
+  function placeAdvisor() {
+    const panel = $('advisor-panel');
+    const target = phoneQuery.matches ? $('advisor-slot') : $('advisor-home');
+    if (panel.parentElement !== target) target.appendChild(panel);
+    if (!phoneQuery.matches && state.drawerTab === 'advisor') selectTab('settings');
+  }
+  (phoneQuery.addEventListener ? phoneQuery.addEventListener('change', placeAdvisor) : phoneQuery.addListener(placeAdvisor));
+
   // ---------- side menu ----------
   function openDrawer(tab) {
     if (tab) selectTab(tab);
@@ -1889,6 +1923,7 @@ __SOLVER__
     if (!b || b.disabled) return;
     const act = b.dataset.act;
     if (act === 'deal') deal();
+    else if (act === 'why') openDrawer('advisor');
     else if (act === 'clear') { state.showPayout = false; if (state.spots[state.activeSpot].length) state.spots[state.activeSpot] = []; else state.spots = [[], [], []]; betFromStack(); persist(); render(); }
     else if (act === 'undo-chip') { state.showPayout = false; state.spots[state.activeSpot].pop(); betFromStack(); persist(); render(); }
     else if (act === 'double-bet') { state.showPayout = false; const i = state.activeSpot; const room = state.balance - (totalBet() - spotBet(i)); state.spots[i] = decompose(Math.min(spotBet(i) * 2, Math.floor(room / 5) * 5)); betFromStack(); persist(); render(); }
@@ -1962,6 +1997,7 @@ __SOLVER__
   if (location.protocol === 'bjapp:') $('table-link').href = 'bjapp://app/strategija.html';
 
   trimSpots();
+  placeAdvisor();
   applyTheme();
   applyLanguage();
 })();

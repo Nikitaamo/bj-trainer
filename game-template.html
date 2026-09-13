@@ -139,11 +139,11 @@
     font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--table-muted);
   }
   .area-label .total { font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 24px; letter-spacing: 0; text-transform: none; color: var(--table-ink); }
-  .dealer-area { display: grid; gap: 8px; justify-items: center; text-align: center; }
+  .dealer-area { --cw: 74px; display: grid; gap: 8px; justify-items: center; text-align: center; }
   .dealer-area .area-label { justify-content: center; }
 
-  /* every card size comes from --cw on the .cards row, so glyphs always scale with it */
-  .cards { --cw: 74px; display: flex; min-height: calc(var(--cw) * 1.4); padding-left: 0; }
+  /* one number per area drives card size; JS shrinks --cw on .hands until every hand fits */
+  .cards { display: flex; min-height: calc(var(--cw) * 1.4); padding-left: 0; }
   .card {
     position: relative;
     width: var(--cw); height: calc(var(--cw) * 1.4);
@@ -168,11 +168,11 @@
   .message { text-align: center; min-height: 24px; font-size: 15px; color: var(--table-ink); }
   .message b { font-weight: 600; }
 
-  .hands { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; align-items: flex-start; }
+  .hands { --cw: 74px; display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--cw) * .12) calc(var(--cw) * .17); align-items: flex-start; }
   .hand {
-    display: grid; gap: 4px; justify-items: center;
-    padding: 6px 8px 4px;
-    border-radius: 14px;
+    display: grid; gap: calc(var(--cw) * .05); justify-items: center;
+    padding: calc(var(--cw) * .07) calc(var(--cw) * .1) calc(var(--cw) * .04);
+    border-radius: calc(var(--cw) * .18);
     border: 2px solid transparent;
     transition: border-color .15s;
   }
@@ -181,11 +181,11 @@
   /* the last decision on this hand stays visible: green or red cards until the next deal */
   .hand.g-ok .card { box-shadow: 0 0 0 2px var(--good), 0 1px 1px rgba(0, 0, 0, .25), 0 6px 14px -4px rgba(0, 0, 0, .45); }
   .hand.g-miss .card { box-shadow: 0 0 0 2px var(--bad), 0 1px 1px rgba(0, 0, 0, .25), 0 6px 14px -4px rgba(0, 0, 0, .45); }
-  .hand .g-mark { width: 17px; height: 17px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; }
+  .hand .g-mark { width: calc(var(--cw) * .24); height: calc(var(--cw) * .24); border-radius: 50%; display: inline-grid; place-items: center; font-size: calc(var(--cw) * .16); font-weight: 700; color: #fff; }
   .hand .g-mark.ok { background: var(--good); }
   .hand .g-mark.miss { background: var(--bad); }
-  .hand .meta { display: flex; align-items: center; gap: 7px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .04em; color: var(--table-muted); }
-  .hand .meta .t { font-family: "Bodoni Moda", serif; font-size: 27px; letter-spacing: 0; color: var(--table-ink); }
+  .hand .meta { display: flex; align-items: center; gap: calc(var(--cw) * .09); font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: clamp(10px, calc(var(--cw) * .19), 15px); letter-spacing: .04em; color: var(--table-muted); }
+  .hand .meta .t { font-family: "Bodoni Moda", serif; font-size: calc(var(--cw) * .37); letter-spacing: 0; color: var(--table-ink); }
   .hand .meta .t.bad { color: #F0A090; }
   .hand .meta .t.bj { color: var(--gold-bright); }
   .chip {
@@ -199,6 +199,11 @@
     transition: transform .12s;
   }
   .chip.small { width: 30px; height: 30px; font-size: 11px; box-shadow: 0 1px 3px rgba(0, 0, 0, .4), inset 0 0 0 2px #F3E9CF; }
+  .hand .chip.small { width: calc(var(--cw) * .4); height: calc(var(--cw) * .4); font-size: clamp(9px, calc(var(--cw) * .15), 12px); }
+  /* last resort on short screens: the per-hand bet chip goes, the spots below still show it */
+  .hands.compact .hand .chip.small { display: none; }
+  .hands.compact .hand .meta { gap: calc(var(--cw) * .07); }
+  .hand .result-tag { font-size: clamp(10px, calc(var(--cw) * .2), 15px); padding: 1px calc(var(--cw) * .12); }
   .chip.c5 { --chip: #B3261E; --chip-ink: #FFF4EE; }
   .chip.c25 { --chip: #2E7D4F; --chip-ink: #EDFBF1; }
   .chip.c50 { --chip: #1F4E9C; --chip-ink: #EAF1FF; }
@@ -212,16 +217,16 @@
   /* ---------- betting spots ---------- */
   .spots { display: flex; justify-content: center; gap: 26px; padding: 4px 0 2px; }
   .spot {
-    position: relative; width: 78px; height: 78px; border-radius: 50%;
+    position: relative; width: 62px; height: 62px; border-radius: 50%;
     border: 2px dashed rgba(255, 255, 255, .45); background: rgba(0, 0, 0, .12);
     color: var(--table-ink); display: grid; place-items: center; cursor: pointer;
-    font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 22px; font-variant-numeric: tabular-nums;
+    font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 19px; font-variant-numeric: tabular-nums;
     transition: transform .12s, box-shadow .12s;
     touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
   }
   .spot .spot-n { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); background: var(--table-deep); color: var(--table-muted); font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 11px; letter-spacing: .1em; padding: 1px 7px; border-radius: 999px; }
   .spot .spot-amt { line-height: 1; }
-  .spot:not(.has) .spot-amt { font-family: "Barlow", sans-serif; font-weight: 500; font-size: 26px; color: var(--table-muted); }
+  .spot:not(.has) .spot-amt { font-family: "Barlow", sans-serif; font-weight: 500; font-size: 22px; color: var(--table-muted); }
   .spot.has { border-style: solid; border-color: rgba(255, 255, 255, .55); background: radial-gradient(circle, rgba(184, 137, 43, .35) 0 58%, rgba(0, 0, 0, .15) 60%); }
   .spot.active { box-shadow: 0 0 0 3px var(--gold-bright), 0 6px 16px rgba(0, 0, 0, .35); transform: translateY(-2px); }
   .spot:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
@@ -233,7 +238,7 @@
   .spot.lose .spot-delta { color: #F5B9AD; }
   .spots.payout { padding-bottom: 10px; }
   .bet-chips button.sel .chip { box-shadow: 0 0 0 3px var(--gold-bright), 0 2px 4px rgba(0, 0, 0, .4), inset 0 0 0 2px #F3E9CF; transform: translateY(-3px); }
-  @media (max-width: 860px) { .spots { gap: 14px; } .spot { width: 68px; height: 68px; font-size: 19px; } }
+
 
   /* ---------- status strip: balance and bet next to the buttons ---------- */
   .status { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--table-muted); padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, .14); }
@@ -452,39 +457,23 @@
     .tip .why-btn { display: inline-block; margin-left: 8px; border: 1px solid var(--gold-bright); background: none; color: var(--gold-bright); border-radius: 999px; padding: 1px 9px; font: inherit; font-size: 13px; }
     .table {
       display: flex; flex-direction: column;
-      height: calc(100vh - 68px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      height: calc(100dvh - 68px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(100vh - 58px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(100dvh - 58px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       min-height: 0; gap: 8px; overflow: hidden;
     }
     .dealer-area, .message, .spots, .status, .controls { flex: none; }
     .hands { flex: 1; min-height: 0; overflow-y: auto; justify-content: center; align-content: center; gap: 2px 6px; }
     .message { min-height: 0; font-size: 14px; }
     .controls { gap: 4px; }
-    .dealer-area { gap: 3px; }
-    .dealer-area .cards { --cw: 60px; }
-    /* several hands: smaller cards so every hand stays on screen */
-    .cards { --cw: 66px; }
-    .hands[data-n="2"] .cards { --cw: 58px; }
-    .hands[data-n="3"] .cards { --cw: 52px; }
-    .hands[data-n="4"] .cards { --cw: 45px; }
-    .hands[data-n="2"] .hand { padding: 4px 5px 2px; gap: 3px; }
-    .hands[data-n="3"] .hand, .hands[data-n="4"] .hand { padding: 2px 3px 1px; gap: 2px; border-radius: 10px; }
-    .hands[data-n="3"] .hand .meta, .hands[data-n="4"] .hand .meta { font-size: 11.5px; gap: 4px; }
-    .hands[data-n="3"] .hand .meta .t { font-size: 20px; }
-    .hands[data-n="4"] .hand .meta .t { font-size: 17px; }
-    .hands[data-n="3"] .chip.small { width: 23px; height: 23px; font-size: 10px; }
-    .hands[data-n="4"] .chip.small { width: 20px; height: 20px; font-size: 9px; }
-    .hands[data-n="3"] .hand .g-mark, .hands[data-n="4"] .hand .g-mark { width: 15px; height: 15px; font-size: 10px; }
-    .hands[data-n="3"] .result-tag { font-size: 12px; padding: 1px 7px; }
-    .hands[data-n="4"] .result-tag { font-size: 11px; padding: 0 6px; }
-    .hand .meta { gap: 6px; }
-    .hand .meta .t { font-size: 24px; }
+    .dealer-area { gap: 3px; --cw: 58px; }
+    /* --cw on .hands is computed by fitHands(): the biggest size where every hand still fits */
+    .hands { --cw: 72px; }
     .spots { gap: 12px; padding: 2px 0 0; }
-    .spot { width: 56px; height: 56px; font-size: 17px; }
-    .spot .spot-n { font-size: 10px; top: -8px; }
-    .spot:not(.has) .spot-amt { font-size: 22px; }
-    .spot .spot-delta { bottom: -10px; font-size: 11px; padding: 0 7px; }
-    .spots.payout { padding-bottom: 6px; }
+    .spot { width: 44px; height: 44px; font-size: 15px; border-width: 2px; }
+    .spot .spot-n { font-size: 9px; top: -7px; padding: 0 6px; }
+    .spot:not(.has) .spot-amt { font-size: 18px; }
+    .spot .spot-delta { bottom: -9px; font-size: 10.5px; padding: 0 6px; }
+    .spots.payout { padding-bottom: 5px; }
     .status { padding-top: 2px; font-size: 13px; }
     .status b { font-size: 20px; }
     .bet-chips { gap: 6px; }
@@ -1585,6 +1574,7 @@ __SOLVER__
     renderMessage();
     renderControls();
     renderAdvisor();
+    fitHands();
   }
 
   function renderMessage() {
@@ -1944,6 +1934,45 @@ __SOLVER__
     $('patterns').innerHTML = plist.length ? plist.map(([k, n]) => `<div class="pat"><div class="hd"><b>${t('pat_' + k)}</b><span class="cnt">${n}</span></div><div class="adv">${t('adv_' + k)}</div></div>`).join('') : `<p class="note">${t('noPatterns')}</p>`;
   }
 
+  // ---------- cards use the free space: shrink until every hand fits, never scroll ----------
+  const CW_MIN = 26, CW_MAX = 92;
+  let fitKey = '';
+  // the felt fills exactly the space under the header, whatever the header and safe areas measure
+  function fitTable() {
+    const tbl = $('table'), app = document.querySelector('.app');
+    if (!phoneQuery.matches) { tbl.style.removeProperty('height'); return; }
+    const top = tbl.getBoundingClientRect().top + window.scrollY;
+    const padBottom = parseFloat(getComputedStyle(app).paddingBottom) || 0;
+    tbl.style.height = Math.max(320, Math.floor(window.innerHeight - top - padBottom)) + 'px';
+  }
+  function fitHands(force) {
+    const hs = $('hands');
+    if (!phoneQuery.matches) { hs.style.removeProperty('--cw'); document.querySelector('.dealer-area').style.removeProperty('--cw'); fitTable(); fitKey = ''; return; }
+    fitTable();
+    const key = [state.hands.length, state.hands.reduce((n, h) => n + h.cards.length, 0), state.phase, hs.clientHeight, hs.clientWidth].join('|');
+    if (!force && key === fitKey) return;
+    fitKey = key;
+    if (!state.hands.length || !hs.clientHeight) { hs.style.removeProperty('--cw'); return; }
+    // a crowded table borrows height from the dealer's cards first
+    const dealer = document.querySelector('.dealer-area');
+    dealer.style.setProperty('--cw', (state.hands.length >= 5 ? 40 : state.hands.length >= 3 ? 48 : 58) + 'px');
+    // a size fits when the hands need no vertical scroll and no hand is wider than the table
+    const fits = (cw) => { hs.style.setProperty('--cw', cw + 'px'); return hs.scrollHeight <= hs.clientHeight + 1 && hs.scrollWidth <= hs.clientWidth + 1; };
+    hs.classList.remove('compact');
+    if (fits(CW_MAX)) return;
+    // biggest size that fits; if even the smallest does not, drop the per-hand chip and retry
+    for (const compact of [false, true]) {
+      hs.classList.toggle('compact', compact);
+      if (!fits(CW_MIN)) continue;
+      let lo = CW_MIN, hi = CW_MAX;
+      while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (fits(mid)) lo = mid; else hi = mid; }
+      fits(lo);
+      return;
+    }
+    hs.classList.add('compact');
+    fits(CW_MIN);
+  }
+
   // ---------- strategy table inside the menu ----------
   const LETTER_ACTION = { S: 'stand', H: 'hit', D: 'double', Ds: 'double', P: 'split', Rh: 'surrender', Rs: 'surrender' };
   const SECTION_KEYS = { hard: 'tHard', soft: 'tSoft', pairs: 'tPairs' };
@@ -2005,9 +2034,10 @@ __SOLVER__
     const panel = $('advisor-panel');
     const target = phoneQuery.matches ? $('advisor-slot') : $('advisor-home');
     if (panel.parentElement !== target) target.appendChild(panel);
+    $('advisor-home').style.display = phoneQuery.matches ? 'none' : '';
     if (!phoneQuery.matches && state.drawerTab === 'advisor') selectTab('settings');
   }
-  (phoneQuery.addEventListener ? phoneQuery.addEventListener('change', placeAdvisor) : phoneQuery.addListener(placeAdvisor));
+  (phoneQuery.addEventListener ? phoneQuery.addEventListener('change', () => { placeAdvisor(); fitHands(true); }) : phoneQuery.addListener(placeAdvisor));
 
   // ---------- side menu ----------
   function openDrawer(tab) {
@@ -2094,7 +2124,7 @@ __SOLVER__
   document.querySelectorAll('button[data-bal]').forEach(b => b.addEventListener('click', () => setBalance(+b.dataset.bal)));
   $('bal-set').addEventListener('click', () => { const v = parseFloat($('bal-input').value); if (v > 0) { setBalance(v); $('bal-input').value = ''; } });
   $('bal-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('bal-set').click(); } });
-  window.addEventListener('resize', drawSpark);
+  window.addEventListener('resize', () => { drawSpark(); fitHands(true); });
   document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => {
     lang = b.dataset.lang;
     try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
@@ -2122,7 +2152,7 @@ __SOLVER__
 
   // test hook for local runs only: __bj.rig([{r:'A'},{r:'K'},{r:'A'}]) rigs the next deal
   // (dealer up card first, then the player's two cards, then further draws)
-  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, explain, ruleLine, renderAnalysis, tableAction, rowEvs, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
+  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, explain, ruleLine, renderAnalysis, tableAction, rowEvs, fitHands, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
   // inside the desktop app the table is bundled next to the game
   if (location.protocol === 'bjapp:') $('table-link').href = 'bjapp://app/strategija.html';
 

@@ -151,15 +151,16 @@
     display: flex; align-items: baseline; gap: 10px;
     font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--table-muted);
   }
-  .area-label .total { font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 20px; letter-spacing: 0; text-transform: none; color: var(--table-ink); }
+  .area-label .total { font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 24px; letter-spacing: 0; text-transform: none; color: var(--table-ink); }
   .dealer-area { display: grid; gap: 8px; justify-items: center; text-align: center; }
   .dealer-area .area-label { justify-content: center; }
 
-  .cards { display: flex; min-height: 104px; padding-left: 0; }
+  /* every card size comes from --cw on the .cards row, so glyphs always scale with it */
+  .cards { --cw: 74px; display: flex; min-height: calc(var(--cw) * 1.4); padding-left: 0; }
   .card {
     position: relative;
-    width: 72px; height: 102px;
-    border-radius: 8px;
+    width: var(--cw); height: calc(var(--cw) * 1.4);
+    border-radius: calc(var(--cw) * .1);
     background: var(--cardface);
     color: var(--cardface-ink);
     box-shadow: 0 1px 1px rgba(0, 0, 0, .25), 0 6px 14px -4px rgba(0, 0, 0, .45);
@@ -167,31 +168,37 @@
     font-weight: 700;
     flex: none;
   }
-  .card + .card { margin-left: -26px; }
+  .card + .card { margin-left: calc(var(--cw) * -.45); }
   .card.red { color: var(--cardface-red); }
-  .card .idx { position: absolute; top: 5px; left: 7px; font-size: 21px; line-height: 1; display: grid; justify-items: center; }
-  .card .idx i { font-style: normal; font-size: 16px; margin-top: 1px; }
-  .card .idx.b { top: auto; left: auto; right: 7px; bottom: 5px; transform: rotate(180deg); }
-  .card .pip { position: absolute; inset: 0; display: grid; place-items: center; font-size: 38px; }
-  .card.slot { background: rgba(255, 255, 255, .06); border: 2px dashed rgba(255, 255, 255, .35); box-shadow: none; color: var(--table-muted); display: grid; place-items: center; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; text-align: center; line-height: 1.2; padding: 6px; }
+  .card .idx { position: absolute; top: calc(var(--cw) * .05); left: calc(var(--cw) * .08); font-size: calc(var(--cw) * .36); line-height: 1; display: grid; justify-items: center; }
+  .card .idx i { font-style: normal; font-size: calc(var(--cw) * .25); margin-top: 1px; }
+  .card .idx.b { top: auto; left: auto; right: calc(var(--cw) * .08); bottom: calc(var(--cw) * .05); transform: rotate(180deg); }
+  .card .pip { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--cw) * .64); }
+  .card.slot { background: rgba(255, 255, 255, .06); border: 2px dashed rgba(255, 255, 255, .35); box-shadow: none; color: var(--table-muted); display: grid; place-items: center; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: calc(var(--cw) * .16); letter-spacing: .06em; text-transform: uppercase; text-align: center; line-height: 1.2; padding: 5px; }
   @keyframes deal { from { transform: translateY(-26px) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
   .card.deal { animation: deal .32s cubic-bezier(.2, .7, .3, 1) both; }
 
   .message { text-align: center; min-height: 24px; font-size: 15px; color: var(--table-ink); }
   .message b { font-weight: 600; }
 
-  .hands { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 18px; align-items: flex-start; }
+  .hands { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; align-items: flex-start; }
   .hand {
-    display: grid; gap: 6px; justify-items: center;
-    padding: 10px 12px 8px;
+    display: grid; gap: 4px; justify-items: center;
+    padding: 6px 8px 4px;
     border-radius: 14px;
     border: 2px solid transparent;
     transition: border-color .15s;
   }
   .hand.active { border-color: var(--gold-bright); background: rgba(0, 0, 0, .12); }
   .hand.dim { opacity: .62; }
-  .hand .meta { display: flex; align-items: center; gap: 8px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .04em; color: var(--table-muted); }
-  .hand .meta .t { font-family: "Bodoni Moda", serif; font-size: 23px; letter-spacing: 0; color: var(--table-ink); }
+  /* the last decision on this hand stays visible: green or red cards until the next deal */
+  .hand.g-ok .card { box-shadow: 0 0 0 2px var(--good), 0 1px 1px rgba(0, 0, 0, .25), 0 6px 14px -4px rgba(0, 0, 0, .45); }
+  .hand.g-miss .card { box-shadow: 0 0 0 2px var(--bad), 0 1px 1px rgba(0, 0, 0, .25), 0 6px 14px -4px rgba(0, 0, 0, .45); }
+  .hand .g-mark { width: 17px; height: 17px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; }
+  .hand .g-mark.ok { background: var(--good); }
+  .hand .g-mark.miss { background: var(--bad); }
+  .hand .meta { display: flex; align-items: center; gap: 7px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .04em; color: var(--table-muted); }
+  .hand .meta .t { font-family: "Bodoni Moda", serif; font-size: 27px; letter-spacing: 0; color: var(--table-ink); }
   .hand .meta .t.bad { color: #F0A090; }
   .hand .meta .t.bj { color: var(--gold-bright); }
   .chip {
@@ -379,7 +386,9 @@
   .drawer-head h2 { font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 22px; margin: 0; }
   .icon-btn { border: 1px solid var(--line-strong); background: none; color: var(--ink); border-radius: 50%; width: 32px; height: 32px; font-size: 15px; display: grid; place-items: center; }
   .tabs { display: flex; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--line); }
-  .tabs button { flex: 1; border: 0; background: none; color: var(--muted); padding: 9px 6px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tabs { overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { flex: 1 0 auto; white-space: nowrap; border: 0; background: none; color: var(--muted); padding: 9px 7px; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 12.5px; letter-spacing: .04em; text-transform: uppercase; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--gold); }
   .tabpanel { padding: 14px 16px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; display: grid; gap: 10px; align-content: start; flex: 1; }
   .tabpanel[hidden] { display: none; }
@@ -418,6 +427,23 @@
   .history .why, .feedback .why { color: var(--muted); font-size: 12.5px; }
   .history .dec .cards { font-family: "Barlow Condensed", sans-serif; font-weight: 600; color: var(--ink); }
 
+  /* ---------- strategy grid in the menu ---------- */
+  .sgrid { display: grid; gap: 4px; margin-bottom: 12px; }
+  .sgrid h4 { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .sgrid table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 1px; font-family: "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; }
+  .sgrid th, .sgrid td { padding: 0; text-align: center; }
+  .sgrid thead th { font-weight: 600; font-size: 11px; color: var(--muted); padding-bottom: 2px; }
+  .sgrid tbody th { width: 46px; text-align: right; padding-right: 4px; font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .sgrid .c { display: block; width: 100%; border: 0; border-radius: 3px; font: inherit; font-weight: 700; font-size: 11.5px; line-height: 22px; cursor: pointer; padding: 0; }
+  .sgrid .c[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--gold); }
+  #table-pick { min-height: 32px; }
+  #table-pick b { color: var(--ink); font-weight: 600; }
+  .legend-mini { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11.5px; color: var(--muted); }
+  .legend-mini span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend-mini i { font-style: normal; display: inline-grid; place-items: center; width: 22px; border-radius: 3px; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 11px; line-height: 18px; }
+  .a-Ds { background: var(--d-bg); color: var(--d-ink); }
+  .a-Rh, .a-Rs { background: var(--r-bg); color: var(--r-ink); }
+
   /* ---------- decision flash ---------- */
   .flash { position: fixed; inset: 0; pointer-events: none; z-index: 30; opacity: 0; transition: opacity .35s ease; }
   .flash.ok { opacity: 1; box-shadow: inset 0 0 0 6px var(--good), inset 0 0 90px rgba(46, 125, 79, .55); transition-duration: .08s; }
@@ -448,27 +474,24 @@
     .message { min-height: 0; font-size: 14px; }
     .controls { gap: 4px; }
     .dealer-area { gap: 3px; }
-    .dealer-area .card { width: 56px; height: 78px; }
-    .dealer-area .card + .card { margin-left: -22px; }
-    .dealer-area .cards { min-height: 80px; }
+    .dealer-area .cards { --cw: 60px; }
     /* several hands: smaller cards so every hand stays on screen */
-    .hands[data-n="2"] .card { width: 56px; height: 78px; }
-    .hands[data-n="2"] .card + .card { margin-left: -24px; }
-    .hands[data-n="2"] .card .idx { font-size: 17px; }
-    .hands[data-n="2"] .card .pip { font-size: 28px; }
-    .hands[data-n="2"] .cards { min-height: 80px; }
-    .hands[data-n="3"] .card { width: 48px; height: 68px; border-radius: 6px; }
-    .hands[data-n="3"] .card + .card { margin-left: -21px; }
-    .hands[data-n="3"] .card .idx { font-size: 15px; top: 3px; left: 4px; }
-    .hands[data-n="3"] .card .idx i { font-size: 12px; }
-    .hands[data-n="3"] .card .idx.b { right: 4px; bottom: 3px; }
-    .hands[data-n="3"] .card .pip { font-size: 22px; }
-    .hands[data-n="3"] .cards { min-height: 70px; }
-    .hands[data-n="3"] .hand { padding: 2px 3px 1px; gap: 2px; border-radius: 10px; }
-    .hands[data-n="3"] .hand .meta { font-size: 11.5px; gap: 4px; }
-    .hands[data-n="3"] .hand .meta .t { font-size: 18px; }
-    .hands[data-n="3"] .chip.small { width: 24px; height: 24px; font-size: 10px; }
+    .cards { --cw: 66px; }
+    .hands[data-n="2"] .cards { --cw: 58px; }
+    .hands[data-n="3"] .cards { --cw: 52px; }
+    .hands[data-n="4"] .cards { --cw: 45px; }
+    .hands[data-n="2"] .hand { padding: 4px 5px 2px; gap: 3px; }
+    .hands[data-n="3"] .hand, .hands[data-n="4"] .hand { padding: 2px 3px 1px; gap: 2px; border-radius: 10px; }
+    .hands[data-n="3"] .hand .meta, .hands[data-n="4"] .hand .meta { font-size: 11.5px; gap: 4px; }
+    .hands[data-n="3"] .hand .meta .t { font-size: 20px; }
+    .hands[data-n="4"] .hand .meta .t { font-size: 17px; }
+    .hands[data-n="3"] .chip.small { width: 23px; height: 23px; font-size: 10px; }
+    .hands[data-n="4"] .chip.small { width: 20px; height: 20px; font-size: 9px; }
+    .hands[data-n="3"] .hand .g-mark, .hands[data-n="4"] .hand .g-mark { width: 15px; height: 15px; font-size: 10px; }
     .hands[data-n="3"] .result-tag { font-size: 12px; padding: 1px 7px; }
+    .hands[data-n="4"] .result-tag { font-size: 11px; padding: 0 6px; }
+    .hand .meta { gap: 6px; }
+    .hand .meta .t { font-size: 24px; }
     .spots { gap: 12px; padding: 2px 0 0; }
     .spot { width: 56px; height: 56px; font-size: 17px; }
     .spot .spot-n { font-size: 10px; top: -8px; }
@@ -486,13 +509,6 @@
     .advisor { position: static; }
     .advisor select { font-size: 16px; }
     .table { padding: 14px 12px 14px; border-radius: 22px; border-width: 5px; min-height: 0; }
-    .card { width: 62px; height: 88px; }
-    .card + .card { margin-left: -24px; }
-    .card .idx { font-size: 19px; top: 4px; left: 5px; }
-    .card .idx i { font-size: 14px; }
-    .card .idx.b { right: 5px; bottom: 4px; }
-    .card .pip { font-size: 32px; }
-    .cards { min-height: 90px; }
     .btn { padding: 10px 14px; min-width: 0; font-size: 14px; }
     .hands { gap: 8px 10px; }
     .hand { padding: 8px 8px 6px; }
@@ -564,7 +580,6 @@
         </div>
       </div>
       <div class="foot">
-        <a id="table-link" href="./lentele.html" data-i18n="tableLink">Strategijos lentelė</a>
         <span class="keys" data-i18n="keys">Klavišai: <kbd>H</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>P</kbd> <kbd>R</kbd> <kbd>Enter</kbd></span>
       </div>
     </aside>
@@ -583,11 +598,18 @@
   </header>
   <nav class="tabs" role="tablist">
     <button type="button" role="tab" class="tab-advisor" data-tab="advisor" aria-selected="false" data-i18n="advisor">Patarėjas</button>
-    <button type="button" role="tab" data-tab="settings" aria-selected="true" data-i18n="tabSettings">Nustatymai</button>
+    <button type="button" role="tab" data-tab="table" aria-selected="false" data-i18n="tabTable">Lentelė</button>
     <button type="button" role="tab" data-tab="history" aria-selected="false" data-i18n="tabHistory">Istorija</button>
     <button type="button" role="tab" data-tab="stats" aria-selected="false" data-i18n="tabStats">Statistika</button>
+    <button type="button" role="tab" data-tab="settings" aria-selected="true" data-i18n="tabSettings">Nustatymai</button>
   </nav>
   <section class="tabpanel" data-panel="advisor" id="advisor-slot" hidden></section>
+  <section class="tabpanel" data-panel="table" hidden>
+    <p class="note" id="table-pick"></p>
+    <div id="strategy"></div>
+    <div class="legend-mini" id="table-legend"></div>
+    <div class="foot"><a id="table-link" href="./lentele.html" data-i18n="tableFull">Visa lentelė su EV</a></div>
+  </section>
   <section class="tabpanel" data-panel="settings">
     <label class="row-set"><span data-i18n="sHints">Patarimai</span>
       <select class="hint-mode-select">
@@ -1128,6 +1150,7 @@ function buildStrategy(rulesIn) {
   const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
   const CHIPS = [5, 10, 25, 50, 100];
   const LETTERS = { stand: 'S', hit: 'H', double: 'D', split: 'P', surrender: 'R' };
+  const TABLE_DATA = {"up":["2","3","4","5","6","7","8","9","10","A"],"hard":{"5":["H","H","H","H","H","H","H","H","H","H"],"6":["H","H","H","H","H","H","H","H","H","H"],"7":["H","H","H","H","H","H","H","H","H","H"],"8":["H","H","H","H","H","H","H","H","H","H"],"9":["H","D","D","D","D","H","H","H","H","H"],"10":["D","D","D","D","D","D","D","D","H","H"],"11":["D","D","D","D","D","D","D","D","H","H"],"12":["H","H","S","S","S","H","H","H","H","H"],"13":["S","S","S","S","S","H","H","H","H","H"],"14":["S","S","S","S","S","H","H","H","Rh","H"],"15":["S","S","S","S","S","H","H","H","Rh","H"],"16":["S","S","S","S","S","H","H","Rh","Rh","H"],"17":["S","S","S","S","S","S","S","S","S","S"],"18":["S","S","S","S","S","S","S","S","S","S"],"19":["S","S","S","S","S","S","S","S","S","S"],"20":["S","S","S","S","S","S","S","S","S","S"]},"soft":{"2":["H","H","H","D","D","H","H","H","H","H"],"3":["H","H","H","D","D","H","H","H","H","H"],"4":["H","H","D","D","D","H","H","H","H","H"],"5":["H","H","D","D","D","H","H","H","H","H"],"6":["H","D","D","D","D","H","H","H","H","H"],"7":["S","Ds","Ds","Ds","Ds","S","S","H","H","H"],"8":["S","S","S","S","S","S","S","S","S","S"],"9":["S","S","S","S","S","S","S","S","S","S"]},"pairs":{"1":["P","P","P","P","P","P","P","P","P","H"],"2":["P","P","P","P","P","P","H","H","H","H"],"3":["P","P","P","P","P","P","H","H","H","H"],"4":["H","H","H","P","P","H","H","H","H","H"],"5":["D","D","D","D","D","D","D","D","H","H"],"6":["P","P","P","P","P","H","H","H","H","H"],"7":["P","P","P","P","P","P","H","H","Rh","H"],"8":["P","P","P","P","P","P","P","P","Rh","H"],"9":["P","P","P","P","P","S","P","P","S","S"],"10":["S","S","S","S","S","S","S","S","S","S"]}};
   const STORE = 'bj-trainer';
   const LANG_KEY = 'bj-lang';
 
@@ -1189,7 +1212,9 @@ function buildStrategy(rulesIn) {
       handAria: 'Ranka {n}',
       undoChip: 'Atimti paskutinį žetoną', doubleBet: 'Dvigubinti statymą',
       onTable: 'Ant stalo', spotResult: 'Vieta {n}: grąžinta {p} ({d})', spotsN: '{n} vietos', spotAria: 'Vieta {n}: statymas {b}', spotEmpty: 'Vieta {n}: tuščia, spauskite ir padėkite žetoną', spotHint: 'Pasirinkite žetoną ir spauskite vietą ant stalo. Kiek vietų su statymu, tiek rankų gausite.', insuranceLbl: 'Draudimas',
-      menu: 'Meniu', close: 'Uždaryti', tabSettings: 'Nustatymai', tabHistory: 'Istorija', tabStats: 'Statistika', more: 'Daugiau…',
+      menu: 'Meniu', close: 'Uždaryti', tabSettings: 'Nustatymai', tabHistory: 'Istorija', tabStats: 'Statistika', tabTable: 'Lentelė', more: 'Daugiau…',
+      tHard: 'Kietos rankos', tSoft: 'Minkštos rankos', tPairs: 'Poros', tableFull: 'Visa lentelė su EV',
+      tapCell: 'Spustelėkite langelį ir pamatysite sprendimą žodžiais.', tCell: '{label} {vs} {up}: <b>{action}</b>{alt}', tElse: ' (jei negalima – {alt})',
       sHints: 'Patarimai', sLang: 'Kalba', sFlash: 'Spalvų signalas po sprendimo', training: 'Treniruotė',
       historyHint: 'Naujausi dalinimai viršuje. Spustelėkite dalinimą, kad pamatytumėte visus jo sprendimus.',
       roundN: 'Dalinimas {n}', resetSession: 'Pradėti sesiją iš naujo',
@@ -1298,7 +1323,9 @@ function buildStrategy(rulesIn) {
       handAria: 'Hand {n}',
       undoChip: 'Remove the last chip', doubleBet: 'Double the bet',
       onTable: 'On the table', spotResult: 'Spot {n}: returned {p} ({d})', spotsN: '{n} spots', spotAria: 'Spot {n}: bet {b}', spotEmpty: 'Spot {n}: empty, tap to place a chip', spotHint: 'Pick a chip and tap a spot on the table. Every spot with a bet gets a hand.', insuranceLbl: 'Insurance',
-      menu: 'Menu', close: 'Close', tabSettings: 'Settings', tabHistory: 'History', tabStats: 'Statistics', more: 'More…',
+      menu: 'Menu', close: 'Close', tabSettings: 'Settings', tabHistory: 'History', tabStats: 'Statistics', tabTable: 'Table', more: 'More…',
+      tHard: 'Hard hands', tSoft: 'Soft hands', tPairs: 'Pairs', tableFull: 'Full table with EVs',
+      tapCell: 'Tap a cell to see the decision in words.', tCell: '{label} {vs} {up}: <b>{action}</b>{alt}', tElse: ' (if not allowed – {alt})',
       sHints: 'Hints', sLang: 'Language', sFlash: 'Colour flash after a decision', training: 'Training',
       historyHint: 'Newest rounds first. Tap a round to see all of its decisions.',
       roundN: 'Round {n}', resetSession: 'Restart the session',
@@ -1732,6 +1759,8 @@ function buildStrategy(rulesIn) {
     startPlay();
   }
   // custom feedback keeps keys + value producers so it can be re-rendered in either language
+  // a wrong decision paints the hand red and it stays red for the rest of the round
+  function gradeHand(h, ok) { if (!h) return; if (!ok) h.grade = 'miss'; else if (!h.grade) h.grade = 'ok'; }
   function bump(cost, decision, ok = isOk(cost)) {
     state.stats.decisions++;
     if (ok) {
@@ -1742,8 +1771,10 @@ function buildStrategy(rulesIn) {
       state.stats.evLost += cost;
       state.streak.cur = 0;
     }
-    state.roundDecisions.push({ ...decision, ok });
+    const { handRef, ...stored } = decision;
+    state.roundDecisions.push({ ...stored, ok });
     noteDecision(decision.label, decision.up, ok);
+    gradeHand(decision.handRef, ok);
     const ck = mistakeKey(decision.label, decision.up);
     const cell = state.cells[ck] || { label: decision.label, up: String(upValue(decision.up)), attempts: 0, mistakes: 0, cost: 0, chosen: {} };
     cell.attempts++;
@@ -1768,7 +1799,7 @@ function buildStrategy(rulesIn) {
     const chosen = textKey === 'emTaken' ? 'rEven' : textKey === 'emWait' ? 'rWait' : textKey === 'insTaken' ? 'rIns' : 'rNoIns';
     const best = textKey.startsWith('em') ? 'rWait' : 'rNoIns';
     const facts = { pTen: insuranceAdvice().p };
-    bump(cost, { label: { key: labelKey }, up: 'A', chosenKey: chosen, bestKey: best, cost, facts, cards: hand.cards.map(c => c.r + c.s), bet: hand.bet });
+    bump(cost, { label: { key: labelKey }, up: 'A', chosenKey: chosen, bestKey: best, cost, facts, cards: hand.cards.map(c => c.r + c.s), bet: hand.bet, handRef: hand });
     state.feedback = { customKey: textKey, vars, cost, label: { key: labelKey }, facts, chosenKey: chosen, bestKey: best, ok: isOk(cost) };
     persist();
   }
@@ -1782,7 +1813,7 @@ function buildStrategy(rulesIn) {
     const strict = state.settings.grading === 'exact';
     const tableAct = strict ? null : tableAction(a.label, a.up, allowed);
     const ok = action === a.best || cost < EQUAL_EPS || (!strict && (action === tableAct || cost < TABLE_TOL));
-    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost, ev: a.evs[action], bev: a.evs[a.best], runner, facts: a.facts, cards: a.cards, handIdx: a.handIdx, bet: state.hands[a.handIdx] ? state.hands[a.handIdx].bet : totalBet(), tableAct }, ok);
+    bump(cost, { label: a.label, up: a.up, action, best: a.best, cost, ev: a.evs[action], bev: a.evs[a.best], runner, facts: a.facts, cards: a.cards, handIdx: a.handIdx, bet: state.hands[a.handIdx] ? state.hands[a.handIdx].bet : totalBet(), tableAct, handRef: state.hands[a.handIdx] }, ok);
     state.feedback = { action, best: a.best, evs: a.evs, cost, label: a.label, up: a.up, infeasible: a.infeasible, facts: a.facts, tableAct, ok };
     persist();
   }
@@ -1963,13 +1994,13 @@ function buildStrategy(rulesIn) {
     $('dealer-cards').innerHTML = state.dealer.map(cardHTML).join('') + (showSlot ? `<div class="card slot">${t('slot')}</div>` : '');
     $('dealer-total').innerHTML = state.dealer.length ? totalText(state.dealer, { dealer: true }) : '';
 
-    $('hands').dataset.n = String(Math.min(3, Math.max(1, state.hands.length)));
+    $('hands').dataset.n = String(Math.min(4, Math.max(1, state.hands.length)));
     $('hands').innerHTML = state.hands.map((h, i) => {
       const active = (state.phase === 'play' && i === state.active && !h.done) || (state.phase === 'insurance' && h === offerHand());
       const dim = state.phase === 'play' && !active && h.done && !h.natural;
-      return `<div class="hand${active ? ' active' : ''}${dim ? ' dim' : ''}" aria-label="${t('handAria', { n: i + 1 })}">
+      return `<div class="hand${active ? ' active' : ''}${dim ? ' dim' : ''}${h.grade ? ' g-' + h.grade : ''}" aria-label="${t('handAria', { n: i + 1 })}">
         <div class="cards">${h.cards.map(cardHTML).join('')}</div>
-        <div class="meta">${state.hands.length > 1 ? `<span>${h.box + 1}.</span>` : ''}${totalText(h.cards, { natural: h.natural })}
+        <div class="meta">${state.hands.length > 1 ? `<span>${h.box + 1}.</span>` : ''}${h.grade ? `<span class="g-mark ${h.grade}">${h.grade === 'ok' ? '✓' : '✗'}</span>` : ''}${totalText(h.cards, { natural: h.natural })}
           <span class="chip small">${fmtMoney(h.bet)}</span>${h.doubled ? '<span>×2</span>' : ''}
           ${state.phase === 'result' ? resultText(h) : ''}</div>
       </div>`;
@@ -2364,6 +2395,61 @@ function buildStrategy(rulesIn) {
     $('patterns').innerHTML = plist.length ? plist.map(([k, n]) => `<div class="pat"><div class="hd"><b>${t('pat_' + k)}</b><span class="cnt">${n}</span></div><div class="adv">${t('adv_' + k)}</div></div>`).join('') : `<p class="note">${t('noPatterns')}</p>`;
   }
 
+  // ---------- strategy table inside the menu ----------
+  const LETTER_ACTION = { S: 'stand', H: 'hit', D: 'double', Ds: 'double', P: 'split', Rh: 'surrender', Rs: 'surrender' };
+  const SECTION_KEYS = { hard: 'tHard', soft: 'tSoft', pairs: 'tPairs' };
+  // identical neighbouring rows are merged into one range row, so the grid stays short
+  function strategyRows(section) {
+    const src = TABLE_DATA[section] || {};
+    const out = [];
+    for (const k of Object.keys(src)) {
+      const letters = src[k];
+      const prev = out[out.length - 1];
+      if (section !== 'pairs' && prev && prev.letters.join('') === letters.join('')) { prev.to = k; continue; }
+      out.push({ from: k, to: null, letters });
+    }
+    return out;
+  }
+  function rowLabel(section, r) {
+    if (section === 'hard') return r.to ? r.from + '–' + r.to : r.from;
+    if (section === 'soft') return r.to ? 'A,' + r.from + '–' + r.to : 'A,' + r.from;
+    const n = r.from === '1' ? 'A' : r.from;
+    return n + ',' + n;
+  }
+  const rowLabelData = (section, r) => section === 'hard' ? { k: 'hard', v: r.from }
+    : section === 'soft' ? { k: 'soft', v: String(11 + +r.from) }
+    : { k: 'pair', v: rowLabel(section, r) };
+  function renderStrategy() {
+    const el = $('strategy');
+    if (el.dataset.lang === lang) return;
+    el.dataset.lang = lang;
+    el.innerHTML = ['hard', 'soft', 'pairs'].map(section => {
+      const rows = strategyRows(section);
+      return `<div class="sgrid"><h4>${t(SECTION_KEYS[section])}</h4><table><thead><tr><th></th>` +
+        TABLE_DATA.up.map(u => `<th scope="col">${u}</th>`).join('') + '</tr></thead><tbody>' +
+        rows.map(r => `<tr><th scope="row">${rowLabel(section, r)}</th>` +
+          r.letters.map((a, i) => `<td><button type="button" class="c a-${a}" aria-pressed="false" data-cell="${section}|${r.from}|${i}">${a}</button></td>`).join('') +
+          '</tr>').join('') + '</tbody></table></div>';
+    }).join('');
+    $('table-legend').innerHTML = ['H', 'S', 'D', 'Ds', 'P', 'Rh'].map(a =>
+      `<span><i class="a-${a}">${a}</i>${lower(name(LETTER_ACTION[a]))}</span>`).join('');
+    $('table-pick').textContent = t('tapCell');
+  }
+  function pickCell(btn) {
+    const [section, from, idx] = btn.dataset.cell.split('|');
+    const rows = strategyRows(section);
+    const row = rows.find(r => r.from === from);
+    const a = row.letters[+idx];
+    const alt = (a === 'D' || a === 'Rh') ? lower(name('hit')) : lower(name('stand'));
+    const needsAlt = a === 'D' || a === 'Ds' || a === 'Rh' || a === 'Rs';
+    document.querySelectorAll('#strategy .c[aria-pressed="true"]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    btn.setAttribute('aria-pressed', 'true');
+    $('table-pick').innerHTML = t('tCell', {
+      label: (section === 'hard' ? t('hard') + ' ' : section === 'pairs' ? t('pair') + ' ' : '') + rowLabel(section, row), vs: t('vs'), up: TABLE_DATA.up[+idx],
+      action: name(LETTER_ACTION[a]), alt: needsAlt ? t('tElse', { alt }) : '',
+    });
+  }
+
   // ---------- advisor placement: right column on desktop, menu tab on phones ----------
   const phoneQuery = window.matchMedia('(max-width: 860px)');
   function placeAdvisor() {
@@ -2395,6 +2481,7 @@ function buildStrategy(rulesIn) {
     document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
     document.querySelectorAll('.tabpanel').forEach(p => { p.hidden = p.dataset.panel !== tab; });
     if (tab === 'stats') { drawSpark(); renderAnalysis(); }
+    if (tab === 'table') renderStrategy();
   }
 
   function applyLanguage() {
@@ -2403,6 +2490,8 @@ function buildStrategy(rulesIn) {
     document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
     document.querySelectorAll('.lang-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
     $('menu-close').setAttribute('aria-label', t('close'));
+    $('strategy').dataset.lang = '';
+    if (state.drawerTab === 'table') renderStrategy();
     render();
   }
 
@@ -2450,6 +2539,7 @@ function buildStrategy(rulesIn) {
   $('menu-close').addEventListener('click', closeDrawer);
   $('drawer-backdrop').addEventListener('click', closeDrawer);
   document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => selectTab(b.dataset.tab)));
+  $('strategy').addEventListener('click', (e) => { const c = e.target.closest('.c[data-cell]'); if (c) pickCell(c); });
   $('set-auto').addEventListener('change', (e) => { state.settings.autoDeal = e.target.checked; persist(); });
   $('set-theme').addEventListener('change', (e) => { state.settings.theme = e.target.value; persist(); applyTheme(); render(); });
   document.querySelectorAll('button[data-bal]').forEach(b => b.addEventListener('click', () => setBalance(+b.dataset.bal)));

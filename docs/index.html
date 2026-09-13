@@ -1158,8 +1158,8 @@ function buildStrategy(rulesIn) {
       bust: 'Viršyta ({n})', bj: 'Black Jack', slot: 'antra korta po jūsų ėjimų',
       push: 'Lygiosios', surrendered: 'Pasiduota', even: 'Even money',
       msgEmpty: 'Balansas tuščias. Spauskite „Papildyti“.', msgBet: 'Padėkite žetonus ant vietos ir spauskite <b>Dalinti</b>.',
-      msgEven: '{h}<b>Black Jack</b> prieš tūzą. Imti even money <b>+{x}</b> iš karto, ar laukti?',
-      msgIns: '{h}Krupjė rodo tūzą. Imti draudimą už <b>{x}</b>?',
+      msgEven: '<b>Black Jack</b> prieš tūzą. Imti even money <b>+{x}</b> iš karto, ar laukti?',
+      msgIns: 'Krupjė rodo tūzą. Imti draudimą už <b>{x}</b> (visoms rankoms)?',
       msgBJ: '<b>Black Jack!</b>', msgHandTurn: 'Vieta <b>{n}</b>: jūsų ėjimas.', msgTurn: 'Jūsų ėjimas.', msgDealer: 'Krupjė traukia kortas…',
       msgResult: 'Krupjė {d}.{ins} Šio dalinimo rezultatas: <b>{net}</b>.',
       dBJ: '<b>Black Jack</b>', dBust: '<b>viršijo</b> ({n})', dNoSecond: 'antros kortos nereikėjo', dTotal: '<b>{n}</b>',
@@ -1269,8 +1269,8 @@ function buildStrategy(rulesIn) {
       bust: 'Bust ({n})', bj: 'Black Jack', slot: 'second card after your moves',
       push: 'Push', surrendered: 'Surrendered', even: 'Even money',
       msgEmpty: 'Balance is empty. Press “Top up”.', msgBet: 'Place chips on a spot and press <b>Deal</b>.',
-      msgEven: '{h}<b>Black Jack</b> against an ace. Take even money <b>+{x}</b> now, or wait?',
-      msgIns: '{h}The dealer shows an ace. Take insurance for <b>{x}</b>?',
+      msgEven: '<b>Black Jack</b> against an ace. Take even money <b>+{x}</b> now, or wait?',
+      msgIns: 'The dealer shows an ace. Take insurance for <b>{x}</b> (all hands)?',
       msgBJ: '<b>Black Jack!</b>', msgHandTurn: 'Spot <b>{n}</b>: your move.', msgTurn: 'Your move.', msgDealer: 'The dealer draws…',
       msgResult: 'Dealer {d}.{ins} This round: <b>{net}</b>.',
       dBJ: '<b>Black Jack</b>', dBust: '<b>busts</b> ({n})', dNoSecond: 'needed no second card', dTotal: '<b>{n}</b>',
@@ -1441,7 +1441,7 @@ function buildStrategy(rulesIn) {
     stats: { decisions: 0, correct: 0, evLost: 0 },
     streak: { cur: 0, best: 0 },
     settings: { drill: 'all', level: 3, speed: 'normal', autoDeal: false, theme: 'auto', flash: true, learn: false, grading: 'table' },
-    offerList: [0], offerIdx: 0, showPayout: false,
+    showPayout: false,
     mistakes: {}, fromPool: false, cells: {},
     session: freshSession(1000),
     roundDecisions: [], autoTimer: null, flashTimer: null, drawerTab: 'settings',
@@ -1639,7 +1639,9 @@ function buildStrategy(rulesIn) {
   function canDouble(h) { return state.phase === 'play' && h.cards.length === 2 && !h.fromAces; }
   function isPair(h) { return h.cards.length === 2 && cardValue(h.cards[0]) === cardValue(h.cards[1]); }
   const boxHands = (box) => state.hands.filter(h => h.box === box);
-  const offerHand = () => state.hands.find(h => h.box === state.offerList[state.offerIdx]);
+  // one player, so the dealer asks once: insurance covers every hand on the table
+  const insuranceTotal = () => state.hands.reduce((sum, h) => sum + h.bet, 0) / 2;
+  const evenMoneyTotal = () => state.hands.reduce((sum, h) => sum + h.bet, 0);
   function canSplit(h) { return state.phase === 'play' && isPair(h) && boxHands(h.box).length < RULES.maxSplitHands && !h.fromAces; }
   function canSurrender(h) {
     return state.phase === 'play' && RULES.surrender !== 'none' && boxHands(h.box).length === 1 && !h.isSplit && h.cards.length === 2 &&
@@ -1692,7 +1694,8 @@ function buildStrategy(rulesIn) {
     const wait = RULES.bjPays * (1 - p);
     return { p, wait, even: 1, cost: wait - 1 };
   }
-  const offerIsEvenMoney = () => { const h = offerHand(); return state.phase === 'insurance' && !!h && !!h.natural; };
+  // with every hand a Black Jack the same bet is offered under its casino name, even money
+  const offerIsEvenMoney = () => state.phase === 'insurance' && state.hands.length > 0 && state.hands.every(h => h.natural);
 
   // ---------- game flow ----------
   function deal() {
@@ -1722,7 +1725,7 @@ function buildStrategy(rulesIn) {
     state.active = 0;
     state.insuranceResult = null;
     state.feedback = null;
-    if (cardValue(state.dealer[0]) === 1) { state.phase = 'insurance'; state.offerList = state.hands.map(h => h.box); state.offerIdx = 0; render(); return; }
+    if (cardValue(state.dealer[0]) === 1) { state.phase = 'insurance'; render(); return; }
     startPlay();
   }
   function startPlay() {
@@ -1732,20 +1735,22 @@ function buildStrategy(rulesIn) {
   }
   function answerOffer(yes) {
     if (state.phase !== 'insurance') return;
-    const hand = offerHand();
-    if (!hand) { startPlay(); return; }
-    if (hand.natural) {
+    const hands = state.hands;
+    if (!hands.length) { startPlay(); return; }
+    if (offerIsEvenMoney()) {
       const em = evenMoneyAdvice();
       const cost = yes ? em.cost : 0;
-      recordCustom(cost, 'bjVsA', yes ? 'emTaken' : 'emWait', { e: () => fmtPct(1), w: () => fmtPct(em.wait), cost: () => fmtPct(cost) }, hand);
-      if (yes) hand.evenMoney = true;
+      recordCustom(cost, 'bjVsA', yes ? 'emTaken' : 'emWait', { e: () => fmtPct(1), w: () => fmtPct(em.wait), cost: () => fmtPct(cost) }, hands[0]);
+      if (yes) for (const h of hands) h.evenMoney = true;
     } else {
       const ia = insuranceAdvice();
       const cost = yes ? ia.cost : 0;
-      recordCustom(cost, 'insVsA', yes ? 'insTaken' : 'insDeclined', { ev: () => fmtPct(ia.ev), cost: () => fmtPct(cost) }, hand);
-      if (yes && state.balance >= hand.bet / 2) { hand.insurance = hand.bet / 2; state.balance -= hand.insurance; }
+      recordCustom(cost, 'insVsA', yes ? 'insTaken' : 'insDeclined', { ev: () => fmtPct(ia.ev), cost: () => fmtPct(cost) }, hands[0]);
+      // insuring a Black Jack hand pays exactly what even money would, so every hand is covered
+      if (yes && state.balance >= insuranceTotal()) {
+        for (const h of hands) { h.insurance = h.bet / 2; state.balance -= h.insurance; }
+      }
     }
-    if (state.offerIdx + 1 < state.offerList.length) { state.offerIdx++; render(); return; }
     startPlay();
   }
   // custom feedback keeps keys + value producers so it can be re-rendered in either language
@@ -1986,7 +1991,7 @@ function buildStrategy(rulesIn) {
 
     $('hands').dataset.n = String(Math.min(4, Math.max(1, state.hands.length)));
     $('hands').innerHTML = state.hands.map((h, i) => {
-      const active = (state.phase === 'play' && i === state.active && !h.done) || (state.phase === 'insurance' && h === offerHand());
+      const active = state.phase === 'play' && i === state.active && !h.done;
       const dim = state.phase === 'play' && !active && h.done && !h.natural;
       return `<div class="hand${active ? ' active' : ''}${dim ? ' dim' : ''}${h.grade ? ' g-' + h.grade : ''}" aria-label="${t('handAria', { n: i + 1 })}">
         <div class="cards">${h.cards.map(cardHTML).join('')}</div>
@@ -2034,12 +2039,9 @@ function buildStrategy(rulesIn) {
     const m = $('message');
     switch (state.phase) {
       case 'bet': m.innerHTML = state.balance < 5 ? t('msgEmpty') : (betCount() ? t('msgBet') : t('spotHint')); break;
-      case 'insurance': {
-        const oh = offerHand();
-        const hh = state.hands.length > 1 ? t('handN', { n: oh.box + 1 }) + ': ' : '';
-        m.innerHTML = offerIsEvenMoney() ? t('msgEven', { h: hh, x: fmtMoney(oh.bet) }) : t('msgIns', { h: hh, x: fmtMoney(oh.bet / 2) });
+      case 'insurance':
+        m.innerHTML = offerIsEvenMoney() ? t('msgEven', { x: fmtMoney(evenMoneyTotal()) }) : t('msgIns', { x: fmtMoney(insuranceTotal()) });
         break;
-      }
       case 'play': {
         const h = state.hands[state.active];
         if (!h) { m.innerHTML = ''; break; }
@@ -2090,14 +2092,12 @@ function buildStrategy(rulesIn) {
       c.innerHTML = betRow() + `<div class="row"><button class="btn primary" type="button" data-act="deal" ${canDeal ? '' : 'disabled'}>${t('deal')}</button></div>`;
     } else if (state.phase === 'insurance' && offerIsEvenMoney()) {
       const em = evenMoneyAdvice();
-      const oh = offerHand();
       c.innerHTML = `<div class="tip">${state.hintMode === 'live' ? `${t('tipAdvisor')} <b>${t('tipWait')}</b> <small>· ${t('tipWaitDetail', { w: fmtPct(em.wait), e: fmtPct(1) })}</small>` : ''}</div>
-        <div class="row"><button class="btn" type="button" data-act="ins-no">${t('waitBtn')}</button><button class="btn" type="button" data-act="ins-yes">${t('evenBtn', { x: fmtMoney(oh.bet) })}</button></div>`;
+        <div class="row"><button class="btn" type="button" data-act="ins-no">${t('waitBtn')}</button><button class="btn" type="button" data-act="ins-yes">${t('evenBtn', { x: fmtMoney(evenMoneyTotal()) })}</button></div>`;
     } else if (state.phase === 'insurance') {
       const ia = insuranceAdvice();
-      const oh = offerHand();
       c.innerHTML = `<div class="tip">${state.hintMode === 'live' ? `${t('tipAdvisor')} <b>${t('tipNoIns')}</b> <small>· ${t('tipInsDetail', { ev: fmtPct(ia.ev) })}</small>` : ''}</div>
-        <div class="row"><button class="btn" type="button" data-act="ins-no">${t('noInsBtn')}</button><button class="btn" type="button" data-act="ins-yes" ${state.balance < oh.bet / 2 ? 'disabled' : ''}>${t('insBtn', { x: fmtMoney(oh.bet / 2) })}</button></div>`;
+        <div class="row"><button class="btn" type="button" data-act="ins-no">${t('noInsBtn')}</button><button class="btn" type="button" data-act="ins-yes" ${state.balance < insuranceTotal() ? 'disabled' : ''}>${t('insBtn', { x: fmtMoney(insuranceTotal()) })}</button></div>`;
     } else if (state.phase === 'play') {
       const h = state.hands[state.active];
       const rec = (k) => state.hintMode === 'live' && a && a.best === k ? ' rec' : '';

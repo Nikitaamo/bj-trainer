@@ -128,6 +128,7 @@
     border: 7px solid var(--table-rim);
     box-shadow: inset 0 0 0 2px #8E6B2A, inset 0 0 60px rgba(0, 0, 0, .35), var(--shadow);
     border-radius: 30px;
+    --cw: 74px;
     color: var(--table-ink);
     padding: 20px 22px 18px;
     display: grid;
@@ -139,10 +140,10 @@
     font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--table-muted);
   }
   .area-label .total { font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 24px; letter-spacing: 0; text-transform: none; color: var(--table-ink); }
-  .dealer-area { --cw: 74px; display: grid; gap: 8px; justify-items: center; text-align: center; }
+  .dealer-area { display: grid; gap: 8px; justify-items: center; text-align: center; }
   .dealer-area .area-label { justify-content: center; }
 
-  /* one number per area drives card size; JS shrinks --cw on .hands until every hand fits */
+  /* one number sizes every card on the table; JS lowers it only when something would not fit */
   .cards { display: flex; min-height: calc(var(--cw) * 1.4); padding-left: 0; }
   .card {
     position: relative;
@@ -168,7 +169,7 @@
   .message { text-align: center; min-height: 24px; font-size: 15px; color: var(--table-ink); }
   .message b { font-weight: 600; }
 
-  .hands { --cw: 74px; display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--cw) * .12) calc(var(--cw) * .17); align-items: flex-start; }
+  .hands { display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--cw) * .12) calc(var(--cw) * .17); align-items: flex-start; }
   .hand {
     display: grid; gap: calc(var(--cw) * .05); justify-items: center;
     padding: calc(var(--cw) * .07) calc(var(--cw) * .1) calc(var(--cw) * .04);
@@ -460,14 +461,13 @@
       height: calc(100vh - 58px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       height: calc(100dvh - 58px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       min-height: 0; gap: 8px; overflow: hidden;
+      --cw: 66px; /* starting point before fitCards() measures the screen */
     }
     .dealer-area, .message, .spots, .status, .controls { flex: none; }
     .hands { flex: 1; min-height: 0; overflow-y: auto; justify-content: center; align-content: center; gap: 2px 6px; }
     .message { min-height: 0; font-size: 14px; }
     .controls { gap: 4px; }
-    .dealer-area { gap: 3px; --cw: 58px; }
-    /* --cw on .hands is computed by fitHands(): the biggest size where every hand still fits */
-    .hands { --cw: 72px; }
+    .dealer-area { gap: 3px; }
     .spots { gap: 12px; padding: 2px 0 0; }
     .spot { width: 44px; height: 44px; font-size: 15px; border-width: 2px; }
     .spot .spot-n { font-size: 9px; top: -7px; padding: 0 6px; }
@@ -1258,6 +1258,7 @@ __SOLVER__
       state.rigged = null;
     }
     state.roundDecisions = [];
+    state.cwReset = true;
     state.dealer = [draw()];
     state.hands = [];
     for (let b = 0; b < 3; b++) {
@@ -1574,7 +1575,8 @@ __SOLVER__
     renderMessage();
     renderControls();
     renderAdvisor();
-    fitHands();
+    fitCards(state.cwReset);
+    state.cwReset = false;
   }
 
   function renderMessage() {
@@ -1934,9 +1936,9 @@ __SOLVER__
     $('patterns').innerHTML = plist.length ? plist.map(([k, n]) => `<div class="pat"><div class="hd"><b>${t('pat_' + k)}</b><span class="cnt">${n}</span></div><div class="adv">${t('adv_' + k)}</div></div>`).join('') : `<p class="note">${t('noPatterns')}</p>`;
   }
 
-  // ---------- cards use the free space: shrink until every hand fits, never scroll ----------
-  const CW_MIN = 26, CW_MAX = 92;
-  let fitKey = '';
+  // ---------- one card size for the whole table, changed only when something would not fit ----------
+  const CW_MIN = 26, CW_MAX = 78;
+  let curCw = 0;
   // the felt fills exactly the space under the header, whatever the header and safe areas measure
   function fitTable() {
     const tbl = $('table'), app = document.querySelector('.app');
@@ -1945,32 +1947,33 @@ __SOLVER__
     const padBottom = parseFloat(getComputedStyle(app).paddingBottom) || 0;
     tbl.style.height = Math.max(320, Math.floor(window.innerHeight - top - padBottom)) + 'px';
   }
-  function fitHands(force) {
-    const hs = $('hands');
-    if (!phoneQuery.matches) { hs.style.removeProperty('--cw'); document.querySelector('.dealer-area').style.removeProperty('--cw'); fitTable(); fitKey = ''; return; }
+  // `reset` (a new deal or a new screen size) is the only moment cards may grow again;
+  // while a round is being played the size can only go down, and only when something stops fitting
+  function fitCards(reset) {
+    const tbl = $('table'), hs = $('hands');
+    if (!phoneQuery.matches) { tbl.style.removeProperty('--cw'); hs.classList.remove('compact'); curCw = 0; fitTable(); return; }
     fitTable();
-    const key = [state.hands.length, state.hands.reduce((n, h) => n + h.cards.length, 0), state.phase, hs.clientHeight, hs.clientWidth].join('|');
-    if (!force && key === fitKey) return;
-    fitKey = key;
-    if (!state.hands.length || !hs.clientHeight) { hs.style.removeProperty('--cw'); return; }
-    // a crowded table borrows height from the dealer's cards first
-    const dealer = document.querySelector('.dealer-area');
-    dealer.style.setProperty('--cw', (state.hands.length >= 5 ? 40 : state.hands.length >= 3 ? 48 : 58) + 'px');
-    // a size fits when the hands need no vertical scroll and no hand is wider than the table
-    const fits = (cw) => { hs.style.setProperty('--cw', cw + 'px'); return hs.scrollHeight <= hs.clientHeight + 1 && hs.scrollWidth <= hs.clientWidth + 1; };
-    hs.classList.remove('compact');
-    if (fits(CW_MAX)) return;
-    // biggest size that fits; if even the smallest does not, drop the per-hand chip and retry
-    for (const compact of [false, true]) {
+    if (!state.hands.length || !hs.clientHeight) return;
+    const dealerCards = $('dealer-cards');
+    const fits = (cw) => {
+      tbl.style.setProperty('--cw', cw + 'px');
+      return hs.scrollHeight <= hs.clientHeight + 1 && hs.scrollWidth <= hs.clientWidth + 1 &&
+        dealerCards.getBoundingClientRect().width <= tbl.clientWidth - 24;
+    };
+    if (reset || !curCw) { hs.classList.remove('compact'); curCw = CW_MAX; }
+    if (fits(curCw)) return;                       // the size in use still works: leave it alone
+    for (const compact of [hs.classList.contains('compact'), true]) {
       hs.classList.toggle('compact', compact);
       if (!fits(CW_MIN)) continue;
-      let lo = CW_MIN, hi = CW_MAX;
+      let lo = CW_MIN, hi = curCw;
       while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (fits(mid)) lo = mid; else hi = mid; }
       fits(lo);
+      curCw = lo;
       return;
     }
     hs.classList.add('compact');
     fits(CW_MIN);
+    curCw = CW_MIN;
   }
 
   // ---------- strategy table inside the menu ----------
@@ -2037,7 +2040,7 @@ __SOLVER__
     $('advisor-home').style.display = phoneQuery.matches ? 'none' : '';
     if (!phoneQuery.matches && state.drawerTab === 'advisor') selectTab('settings');
   }
-  (phoneQuery.addEventListener ? phoneQuery.addEventListener('change', () => { placeAdvisor(); fitHands(true); }) : phoneQuery.addListener(placeAdvisor));
+  (phoneQuery.addEventListener ? phoneQuery.addEventListener('change', () => { placeAdvisor(); fitCards(true); }) : phoneQuery.addListener(placeAdvisor));
 
   // ---------- side menu ----------
   function openDrawer(tab) {
@@ -2124,7 +2127,7 @@ __SOLVER__
   document.querySelectorAll('button[data-bal]').forEach(b => b.addEventListener('click', () => setBalance(+b.dataset.bal)));
   $('bal-set').addEventListener('click', () => { const v = parseFloat($('bal-input').value); if (v > 0) { setBalance(v); $('bal-input').value = ''; } });
   $('bal-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('bal-set').click(); } });
-  window.addEventListener('resize', () => { drawSpark(); fitHands(true); });
+  window.addEventListener('resize', () => { drawSpark(); fitCards(true); });
   document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => {
     lang = b.dataset.lang;
     try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
@@ -2152,7 +2155,7 @@ __SOLVER__
 
   // test hook for local runs only: __bj.rig([{r:'A'},{r:'K'},{r:'A'}]) rigs the next deal
   // (dealer up card first, then the player's two cards, then further draws)
-  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, explain, ruleLine, renderAnalysis, tableAction, rowEvs, fitHands, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
+  if (location.protocol !== 'https:') window.__bj = { state, act, deal, newRound, setBalance, openDrawer, closeDrawer, selectTab, explain, ruleLine, renderAnalysis, tableAction, rowEvs, fitCards, rig: (cards) => { state.rigged = cards; }, setLang: (l) => { lang = l; applyLanguage(); } };
   // inside the desktop app the table is bundled next to the game
   if (location.protocol === 'bjapp:') $('table-link').href = 'bjapp://app/strategija.html';
 
